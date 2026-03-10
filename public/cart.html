@@ -408,6 +408,9 @@ function computePricingFallback(items) {
   return totals;
 }
 
+// Replace your renderCart function and add delegation to handle +/- and Remove buttons.
+// This avoids inline onclick handlers and works after re-renders.
+
 function renderCart(items, pricing) {
   const cartList = document.getElementById('cartItemsList');
   if (!Array.isArray(items) || items.length === 0) {
@@ -428,15 +431,19 @@ function renderCart(items, pricing) {
     return;
   }
 
-  let html = '';
+  // Build markup with data attributes for delegation
+  let html = '<div class="cart-items-container">';
   items.forEach(item => {
     const price = item.discount_price != null ? item.discount_price : item.price;
     const discountPercent = (item.discount_price != null && item.price)
       ? Math.round(((item.price - item.discount_price) / item.price) * 100)
       : 0;
 
+    const qty = Number(item.quantity || 1);
+    const id = item.cart_id || item.id || '';
+
     html += `
-      <div class="cart-item" data-id="${item.cart_id || item.id || ''}">
+      <div class="cart-item" data-id="${id}">
         <img src="${item.image_url || ''}" alt="${(item.name || '')}" class="item-image"
              onerror="this.src='https://via.placeholder.com/120?text=No+Image'">
         <div class="item-details">
@@ -449,11 +456,13 @@ function renderCart(items, pricing) {
               <span class="discount">${discountPercent}% off</span>
             ` : ''}
           </div>
-          <div class="quantity-controls">
-            <button class="qty-btn" onclick="updateQuantity(${item.cart_id || item.id}, ${Math.max(1, (item.quantity || 1) - 1)})">-</button>
-            <span class="qty-value">${item.quantity || 1}</span>
-            <button class="qty-btn" onclick="updateQuantity(${item.cart_id || item.id}, ${(item.quantity || 1) + 1})">+</button>
-            <div class="remove-btn" onclick="removeItem(${item.cart_id || item.id})">
+
+          <div class="quantity-controls" data-id="${id}">
+            <button class="qty-btn qty-decrease" data-action="decrease" data-id="${id}" data-qty="${qty}">-</button>
+            <span class="qty-value" data-id="${id}">${qty}</span>
+            <button class="qty-btn qty-increase" data-action="increase" data-id="${id}" data-qty="${qty}">+</button>
+
+            <div class="remove-btn" data-action="remove" data-id="${id}">
               <i class="fas fa-trash"></i> Remove
             </div>
           </div>
@@ -461,15 +470,15 @@ function renderCart(items, pricing) {
       </div>
     `;
   });
+  html += '</div>';
 
   cartList.innerHTML = html;
 
+  // update summary values
   const itemCount = items.reduce((sum, item) => sum + Number(item.quantity || 1), 0);
-
   document.getElementById('itemCount').textContent = itemCount;
   document.getElementById('totalItems').textContent = itemCount;
 
-  // pricing safety: ensure fields exist and are numbers
   const totalMrp = pricing && typeof pricing.totalMrp === 'number' ? pricing.totalMrp : 0;
   const totalDiscount = pricing && typeof pricing.totalDiscount === 'number' ? pricing.totalDiscount : 0;
   const finalAmount = pricing && typeof pricing.finalAmount === 'number' ? pricing.finalAmount : 0;
@@ -480,6 +489,33 @@ function renderCart(items, pricing) {
 
   document.getElementById('checkoutBtn').disabled = false;
 }
+document.addEventListener('DOMContentLoaded', () => {
+  const cartList = document.getElementById('cartItemsList');
+  if (!cartList) return;
+
+  cartList.addEventListener('click', function (e) {
+    // Find the element with data-action attribute
+    const actionEl = e.target.closest('[data-action]');
+    if (!actionEl) return;
+
+    const action = actionEl.getAttribute('data-action');
+    const id = actionEl.getAttribute('data-id');
+    // current quantity stored on the button data-qty (we will compute new qty)
+    let qty = Number(actionEl.getAttribute('data-qty') || 0);
+
+    if (action === 'increase') {
+      const newQty = qty + 1;
+      // call your existing updateQuantity function
+      updateQuantity(id, newQty);
+    } else if (action === 'decrease') {
+      const newQty = Math.max(1, qty - 1);
+      updateQuantity(id, newQty);
+    } else if (action === 'remove') {
+      if (!confirm('Remove this item from cart?')) return;
+      removeItem(id);
+    }
+  });
+});
 
         async function updateQuantity(cartId, quantity) {
             if (quantity < 1) {
@@ -540,6 +576,7 @@ function renderCart(items, pricing) {
 </body>
 
 </html>
+
 
 
 
