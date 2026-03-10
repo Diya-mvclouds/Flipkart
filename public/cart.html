@@ -454,7 +454,7 @@ function renderCart(items, pricing) {
       : 0;
 
     const qty = Number(item.quantity || 1);
-    const id = item.cart_id || item.id || '';
+    const id = item.cart_id || item.product_id || item.id || '';
 
     html += `
       <div class="cart-item" data-id="${id}">
@@ -561,6 +561,7 @@ function renderCart(items, pricing) {
 </body>
 
 </html>
+
 
 
 
