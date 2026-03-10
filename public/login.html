@@ -248,47 +248,48 @@
     </div>
 
     <script>
-        const API_URL = 'http://localhost:3000/api';
+    const API_URL = window.location.hostname.includes('localhost')
+        ? 'http://localhost:3000/api'
+        : 'https://flipkart1-0xel.onrender.com/api';
+
+    document.getElementById('loginForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
         
-        document.getElementById('loginForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+        const errorMsg = document.getElementById('errorMsg');
+        const submitBtn = document.getElementById('submitBtn');
+        
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Logging in...';
+        errorMsg.classList.remove('active');
+        
+        try {
+            const response = await fetch(`${API_URL}/auth/login`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, password })
+            });
             
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
-            const errorMsg = document.getElementById('errorMsg');
-            const submitBtn = document.getElementById('submitBtn');
+            const data = await response.json();
             
-            submitBtn.disabled = true;
-            submitBtn.textContent = 'Logging in...';
-            errorMsg.classList.remove('active');
-            
-            try {
-                const response = await fetch(`${API_URL}/auth/login`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ email, password })
-                });
-                
-                const data = await response.json();
-                
-                if (data.success) {
-                    localStorage.setItem('token', data.token);
-                    localStorage.setItem('user', JSON.stringify(data.user));
-                    window.location.href = 'index.html';
-                } else {
-                    errorMsg.textContent = data.message || 'Login failed!';
-                    errorMsg.classList.add('active');
-                }
-            } catch (error) {
-                errorMsg.textContent = 'Network error. Please try again.';
+            if (data.success) {
+                localStorage.setItem('token', data.token);
+                localStorage.setItem('user', JSON.stringify(data.user));
+                window.location.href = 'index.html';
+            } else {
+                errorMsg.textContent = data.message || 'Login failed!';
                 errorMsg.classList.add('active');
-            } finally {
-                submitBtn.disabled = false;
-                submitBtn.textContent = 'Login';
             }
-        });
-    </script>
+        } catch (error) {
+            errorMsg.textContent = 'Network error. Please try again.';
+            errorMsg.classList.add('active');
+        } finally {
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Login';
+        }
+    });
+</script>
 </body>
+
 </html>
