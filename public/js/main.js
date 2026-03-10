@@ -152,31 +152,57 @@ async function loadDeals() {
 
 function renderProducts(products, container) {
     products.forEach(product => {
+
         const discount = product.discount_price
             ? Math.round(((product.price - product.discount_price) / product.price) * 100)
             : 0;
 
         const card = document.createElement('div');
         card.className = 'product-card';
+
         card.innerHTML = `
-            <img src="${product.image_url}" alt="${product.name}" class="product-image"
+            <img src="${product.image_url}" 
+                 alt="${product.name}" 
+                 class="product-image"
                  onerror="this.src='https://via.placeholder.com/200x200?text=No+Image'">
+
             <div class="product-info">
+
                 <h3 class="product-name">${product.name}</h3>
-                <p class="product-brand">${product.brand || 'Generic Brand'}</p>
+
+                <p class="product-brand">
+                    ${product.brand || 'Generic Brand'}
+                </p>
+
                 <div class="product-price">
-                    <span class="current-price">₹${(product.discount_price || product.price).toLocaleString()}</span>
+
+                    <span class="current-price">
+                        ₹${(product.discount_price || product.price).toLocaleString()}
+                    </span>
+
                     ${product.discount_price ? `
-                        <span class="original-price">₹${product.price.toLocaleString()}</span>
-                        <span class="discount">${discount}% off</span>
+                        <span class="original-price">
+                            ₹${product.price.toLocaleString()}
+                        </span>
+
+                        <span class="discount">
+                            ${discount}% off
+                        </span>
                     ` : ''}
+
                 </div>
+
                 <div class="product-rating">
-                    ${product.rating || 4.2} <i class="fas fa-star"></i>
+                    ${product.rating || 4.2}
+                    <i class="fas fa-star"></i>
                 </div>
-                <button class="add-to-cart-btn" onclick="addToCart(${product.id}, event)">
-                    <i class="fas fa-shopping-cart"></i> Add to Cart
+
+                <button class="add-to-cart-btn"
+                    onclick="addToCart('${product.id}', event)">
+                    <i class="fas fa-shopping-cart"></i>
+                    Add to Cart
                 </button>
+
             </div>
         `;
 
@@ -308,6 +334,7 @@ function showToast(message) {
     toast.classList.add('active');
     setTimeout(() => toast.classList.remove('active'), 3000);
 }
+
 
 
 
