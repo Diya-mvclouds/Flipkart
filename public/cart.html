@@ -334,23 +334,22 @@
         </div>
     </div>
 
-    <script
-        const API_URL = window.location.hostname.includes('localhost')
-        ? 'http://localhost:3000/api'
-        : 'https://flipkart1-0xel.onrender.com/api';
+    <script>
+       const API_URL = window.location.hostname.includes('localhost')
+            ? 'http://localhost:3000/api'
+            : 'https://flipkart1-0xel.onrender.com/api';
+
+        document.addEventListener("DOMContentLoaded", function () {
+            const token = localStorage.getItem("token");
         
-        document.addEventListener("DOMContentLoaded", () => {
-
-    const token = localStorage.getItem("token");
-
-    if (!token) {
-        window.location.href = "login.html";
-        return;
-    }
-
-    loadCart();
-
-});
+            if (!token) {
+                window.location.href = "login.html";
+                return;
+            }
+        
+            loadCart();
+        
+        });
         
         async function loadCart(){
             const token=localStorage.getItem("token");
@@ -506,4 +505,5 @@
 </body>
 
 </html>
+
 
