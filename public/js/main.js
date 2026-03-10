@@ -176,36 +176,36 @@ function loadMoreProducts() {
     loadProducts(false);
 }
 
-async function addToCart(productId, event) {
-    event.stopPropagation();
+async function addToCart(productId) {
     const token = localStorage.getItem('token');
 
     if (!token) {
-        showToast('Please login to add items to cart!');
-        setTimeout(() => window.location.href = 'login.html', 1500);
+        window.location.href = "login.html";
         return;
     }
-
     try {
-        const response = await fetch(`${API_URL}/cart/add`, {
-            method: 'POST',
-            headers: { 
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}` 
+        const res = await fetch(`${API_URL}/cart/add`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${token}`
             },
-            body: JSON.stringify({ productId, quantity: 1 })
+            body: JSON.stringify({
+                productId: productId,
+                quantity: 1
+            })
         });
 
-        if (!response.ok) throw new Error(`HTTP error ${response.status}`);
-        const data = await response.json();
-
+        const data = await res.json();
         if (data.success) {
-            showToast('Product added to cart!');
-            loadCartCount();
-        } else showToast(data.message || 'Failed to add to cart');
-    } catch (error) {
-        console.error('Add to cart error:', error);
-        showToast('Failed to add to cart');
+            showToast("Product added to cart");
+            updateCartCount();
+        } else {
+            showToast("Failed to add to cart");
+        }
+    } catch (err) {
+        console.error("Add to cart error:", err);
+        showToast("Network error");
     }
 }
 
@@ -292,3 +292,6 @@ function showToast(message) {
     toast.classList.add('active');
     setTimeout(() => toast.classList.remove('active'), 3000);
 }
+
+
+
