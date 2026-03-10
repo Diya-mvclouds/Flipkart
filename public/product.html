@@ -319,181 +319,186 @@
     <div class="toast" id="toast"></div>
 
    <script>
-    // ✅ Dynamic API URL for local vs deployed
     const API_URL = window.location.hostname.includes('localhost')
         ? 'http://localhost:3000/api'
         : 'https://flipkart1-0xel.onrender.com/api';
 
-    let currentProduct = null;
+     let currentProduct = null;
 
-    document.addEventListener('DOMContentLoaded', function() {
-        const urlParams = new URLSearchParams(window.location.search);
-        const productId = urlParams.get('id');
-        
-        if (productId) {
-            loadProduct(productId);
-        } else {
-            window.location.href = 'index.html';
-        }
-    });
-
-    async function loadProduct(productId) {
-        const container = document.getElementById('productContainer');
-        container.innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin" style="font-size: 32px; color: #2874f0;"></i></div>';
-
-        try {
-            const response = await fetch(`${API_URL}/products/${productId}`);
-            if (!response.ok) throw new Error('Network response was not ok');
-
-            const data = await response.json();
-
-            if (data.success && data.product) {
-                currentProduct = data.product;
-                renderProduct(data.product);
+        document.addEventListener('DOMContentLoaded', function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const productId = urlParams.get('id');
+            
+            if (productId) {
+                loadProduct(productId);
             } else {
-                container.innerHTML = '<p style="text-align: center; padding: 40px;">Product not found</p>';
+                window.location.href = 'index.html';
             }
-        } catch (error) {
-            console.error('Error loading product:', error);
-            container.innerHTML = '<p style="text-align: center; padding: 40px;">Failed to load product. Please try again later.</p>';
-        }
-    }
-
-    function renderProduct(product) {
-        const discount = product.discount_price 
-            ? Math.round(((product.price - product.discount_price) / product.price) * 100)
-            : 0;
-
-        document.title = `${product.name} - Flipkart`;
-
-        document.getElementById('productContainer').innerHTML = `
-            <div class="product-images">
-                <img src="${product.image_url}" alt="${product.name}" class="main-image"
-                     onerror="this.src='https://via.placeholder.com/400?text=No+Image'">
-                <div class="action-buttons">
-                    <button class="action-btn add-cart-btn" onclick="addToCart()">
-                        <i class="fas fa-shopping-cart"></i> ADD TO CART
-                    </button>
-                    <button class="action-btn buy-btn" onclick="buyNow()">
-                        <i class="fas fa-bolt"></i> BUY NOW
-                    </button>
-                </div>
-            </div>
-
-            <div class="product-details">
-                <p class="product-brand">${product.brand || 'Home'}</p>
-                <h1 class="product-title">${product.name}</h1>
-                
-                <div class="rating-badge">
-                    ${product.rating || 4.2} <i class="fas fa-star"></i>
-                    <span style="font-weight: 400;">| 1,234 Ratings</span>
-                </div>
-
-                <div class="price-section">
-                    <span class="current-price">₹${(product.discount_price || product.price).toLocaleString()}</span>
-                    ${product.discount_price ? `
-                        <span class="original-price">₹${product.price.toLocaleString()}</span>
-                        <span class="discount-percent">${discount}% off</span>
-                    ` : ''}
-                </div>
-
-                <div class="offers-section">
-                    <h3 class="offers-title">Available Offers</h3>
-                    <div class="offer-item">
-                        <span class="offer-tag">Bank Offer</span>
-                        <span>10% off on HDFC Bank Credit Cards</span>
-                    </div>
-                    <div class="offer-item">
-                        <span class="offer-tag">Special</span>
-                        <span>Get extra 5% off with Flipkart Axis Bank Card</span>
-                    </div>
-                    <div class="offer-item">
-                        <span class="offer-tag">Partner</span>
-                        <span>Buy this product and get upto ₹500 off on next purchase</span>
-                    </div>
-                </div>
-
-                <div class="description-section">
-                    <h3>Description</h3>
-                    <p>${product.description || 'No description available for this product.'}</p>
-                </div>
-            </div>
-
-            <div class="delivery-section">
-                <h3 class="delivery-title">Delivery & Services</h3>
-                <div class="pincode-input">
-                    <input type="text" placeholder="Enter Pincode" maxlength="6">
-                    <button>Check</button>
-                </div>
-                <div class="delivery-info">
-                    <i class="fas fa-truck"></i>
-                    <div>
-                        <p style="font-weight: 600;">Free Delivery</p>
-                        <p style="font-size: 12px; color: #878787;">Estimated delivery in 3-5 days</p>
-                    </div>
-                </div>
-                <div class="delivery-info">
-                    <i class="fas fa-undo"></i>
-                    <div>
-                        <p style="font-weight: 600;">7 Days Return</p>
-                        <p style="font-size: 12px; color: #878787;">Easy return policy</p>
-                    </div>
-                </div>
-                <div class="delivery-info">
-                    <i class="fas fa-shield-alt"></i>
-                    <div>
-                        <p style="font-weight: 600;">1 Year Warranty</p>
-                        <p style="font-size: 12px; color: #878787;">Brand warranty</p>
-                    </div>
-                </div>
-            </div>
-        `;
-    }
-
-    async function addToCart() {
-        const token = localStorage.getItem('token');
-        if (!token) {
-            showToast('Please login to add items to cart');
-            setTimeout(() => window.location.href = 'login.html', 1500);
-            return;
-        }
-
-        try {
-            const response = await fetch(`${API_URL}/cart/add`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify({ productId: currentProduct.id, quantity: 1 })
-            });
-
-            const data = await response.json();
-
-            if (data.success) {
-                showToast('Product added to cart!');
-            } else {
-                showToast(data.message || 'Failed to add to cart');
-            }
-        } catch (error) {
-            console.error('Add to cart error:', error);
-            showToast('Failed to add to cart');
-        }
-    }
-
-    function buyNow() {
-        addToCart().then(() => {
-            setTimeout(() => window.location.href = 'cart.html', 1000);
         });
-    }
 
-    function showToast(message) {
-        const toast = document.getElementById('toast');
-        toast.textContent = message;
-        toast.classList.add('active');
-        setTimeout(() => toast.classList.remove('active'), 3000);
-    }
+        async function loadProduct(productId) {
+            const container = document.getElementById('productContainer');
+            
+            try {
+                const response = await fetch(`${API_URL}/products/${productId}`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    currentProduct = data.product;
+                    renderProduct(data.product);
+                } else {
+                    container.innerHTML = '<p style="text-align: center; padding: 40px;">Product not found</p>';
+                }
+            } catch (error) {
+                console.error('Error loading product:', error);
+                container.innerHTML = '<p style="text-align: center; padding: 40px;">Failed to load product</p>';
+            }
+        }
+
+        function renderProduct(product) {
+            const discount = product.discount_price 
+                ? Math.round(((product.price - product.discount_price) / product.price) * 100)
+                : 0;
+            
+            document.title = `${product.name} - Flipkart`;
+            
+            document.getElementById('productContainer').innerHTML = `
+                <div class="product-images">
+                    <img src="${product.image_url}" alt="${product.name}" class="main-image"
+                         onerror="this.src='https://via.placeholder.com/400?text=No+Image'">
+                    <div class="action-buttons">
+                        <button class="action-btn add-cart-btn" onclick="addToCart()">
+                            <i class="fas fa-shopping-cart"></i> ADD TO CART
+                        </button>
+                        <button class="action-btn buy-btn" onclick="buyNow()">
+                            <i class="fas fa-bolt"></i> BUY NOW
+                        </button>
+                    </div>
+                </div>
+
+                <div class="product-details">
+                    <p class="product-brand">${product.brand || 'Home'}</p>
+                    <h1 class="product-title">${product.name}</h1>
+                    
+                    <div class="rating-badge">
+                        ${product.rating || 4.2} <i class="fas fa-star"></i>
+                        <span style="font-weight: 400;">| 1,234 Ratings</span>
+                    </div>
+
+                    <div class="price-section">
+                        <span class="current-price">₹${(product.discount_price || product.price).toLocaleString()}</span>
+                        ${product.discount_price ? `
+                            <span class="original-price">₹${product.price.toLocaleString()}</span>
+                            <span class="discount-percent">${discount}% off</span>
+                        ` : ''}
+                    </div>
+
+                    <div class="offers-section">
+                        <h3 class="offers-title">Available Offers</h3>
+                        <div class="offer-item">
+                            <span class="offer-tag">Bank Offer</span>
+                            <span>10% off on HDFC Bank Credit Cards</span>
+                        </div>
+                        <div class="offer-item">
+                            <span class="offer-tag">Special</span>
+                            <span>Get extra 5% off with Flipkart Axis Bank Card</span>
+                        </div>
+                        <div class="offer-item">
+                            <span class="offer-tag">Partner</span>
+                            <span>Buy this product and get upto ₹500 off on next purchase</span>
+                        </div>
+                    </div>
+
+                    <div class="description-section">
+                        <h3>Description</h3>
+                        <p>${product.description || 'No description available for this product. This is a high-quality product from a trusted brand. Perfect for everyday use with premium features and excellent build quality.'}</p>
+                    </div>
+                </div>
+
+                <div class="delivery-section">
+                    <h3 class="delivery-title">Delivery & Services</h3>
+                    <div class="pincode-input">
+                        <input type="text" placeholder="Enter Pincode" maxlength="6">
+                        <button>Check</button>
+                    </div>
+                    <div class="delivery-info">
+                        <i class="fas fa-truck"></i>
+                        <div>
+                            <p style="font-weight: 600;">Free Delivery</p>
+                            <p style="font-size: 12px; color: #878787;">Estimated delivery in 3-5 days</p>
+                        </div>
+                    </div>
+                    <div class="delivery-info">
+                        <i class="fas fa-undo"></i>
+                        <div>
+                            <p style="font-weight: 600;">7 Days Return</p>
+                            <p style="font-size: 12px; color: #878787;">Easy return policy</p>
+                        </div>
+                    </div>
+                    <div class="delivery-info">
+                        <i class="fas fa-shield-alt"></i>
+                        <div>
+                            <p style="font-weight: 600;">1 Year Warranty</p>
+                            <p style="font-size: 12px; color: #878787;">Brand warranty</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        async function addToCart() {
+            const token = localStorage.getItem('token');
+            
+            if (!token) {
+                showToast('Please login to add items to cart');
+                setTimeout(() => {
+                    window.location.href = 'login.html';
+                }, 1500);
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_URL}/cart/add`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ productId: currentProduct.id, quantity: 1 })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showToast('Product added to cart!');
+                } else {
+                    showToast(data.message || 'Failed to add to cart');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showToast('Failed to add to cart');
+            }
+        }
+
+        function buyNow() {
+            addToCart().then(() => {
+                setTimeout(() => {
+                    window.location.href = 'cart.html';
+                }, 1000);
+            });
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('active');
+            
+            setTimeout(() => {
+                toast.classList.remove('active');
+            }, 3000);
+        }
 </script>
 </body>
 
 </html>
+
