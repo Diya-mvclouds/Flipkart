@@ -373,6 +373,7 @@
                 cartList.innerHTML = '<p style="padding: 20px; text-align: center; color: red;">Network Error. Check console.</p>';
             }
         }
+           
 
         function renderCart(items, pricing) {
             const cartList = document.getElementById('cartItemsList');
@@ -460,12 +461,21 @@
                 const data = await response.json();
                 
                 if (data.success) {
-                    loadCart();
+                    cartData = data.cartItems;
+                
+                    renderCart(
+                        data.cartItems || [],
+                        data.pricing || {
+                            totalMrp: 0,
+                            totalDiscount: 0,
+                            finalAmount: 0
+                        }
+                    );
+                
+                } else {
+                    cartList.innerHTML =
+                        '<p style="padding:20px;text-align:center;">Failed to load cart. Please login again.</p>';
                 }
-            } catch (error) {
-                console.error('Error updating quantity:', error);
-            }
-        }
 
         async function removeItem(cartId) {
             const token = localStorage.getItem('token');
@@ -497,3 +507,4 @@
 </body>
 
 </html>
+
