@@ -463,136 +463,190 @@
     </div>
 
     <script>
-        const API_URL = window.location.hostname.includes('localhost')
-            ? 'http://localhost:3000/api'
-            : 'https://flipkart1-0xel.onrender.com/api';
-        let cartTotal = 0;
+        
+const API_URL = window.location.hostname.includes('localhost')
+    ? 'http://localhost:3000/api'
+    : 'https://flipkart1-0xel.onrender.com/api';
+let cartTotal = 0;
 
-        document.addEventListener('DOMContentLoaded', function() {
-            const token = localStorage.getItem('token');
-            
-            if (!token) {
-                window.location.href = 'login.html';
-                return;
+document.addEventListener('DOMContentLoaded', function() {
+    const token = localStorage.getItem('token');
+    if (!token) {
+        window.location.href = 'login.html';
+        return;
+    }
+
+    loadCartSummary();
+
+    document.querySelectorAll('.payment-option').forEach(option => {
+        option.addEventListener('click', function() {
+            document.querySelectorAll('.payment-option').forEach(opt => opt.classList.remove('selected'));
+            this.classList.add('selected');
+        });
+    });
+});
+
+async function loadCartSummary() {
+    const token = localStorage.getItem('token');
+
+    try {
+        const response = await fetch(`${API_URL}/cart`, {
+            headers: {
+                'Authorization': `Bearer ${token}`
             }
-            
-            loadCartSummary();
-            
-            document.querySelectorAll('.payment-option').forEach(option => {
-                option.addEventListener('click', function() {
-                    document.querySelectorAll('.payment-option').forEach(opt => opt.classList.remove('selected'));
-                    this.classList.add('selected');
-                });
-            });
         });
 
-        async function loadCartSummary() {
-            const token = localStorage.getItem('token');
-            
-            try {
-                const response = await fetch(`${API_URL}/cart`, {
-                    headers: { 
-                        'Authorization': `Bearer ${token}` 
-                    }
-                });
-                
-                const data = await response.json();
-                
-                if (data.success) {
-                    if (data.cartItems.length === 0) {
-                        alert("Your cart is empty!");
-                        window.location.href = 'cart.html';
-                        return;
-                    }
-
-                    const pricing = data.pricing;
-                    cartTotal = pricing.finalAmount;
-
-                    const itemCount = data.cartItems.reduce((sum, item) => sum + item.quantity, 0);
-                    
-                    document.getElementById('itemCount').textContent = itemCount;
-                    document.getElementById('itemsTotal').textContent = '₹' + pricing.totalMrp.toLocaleString();
-                    document.getElementById('totalAmount').textContent = '₹' + pricing.finalAmount.toLocaleString();
-                    
-                    const discountEl = document.getElementById('discount');
-                    if (pricing.totalDiscount > 0) {
-                        discountEl.textContent = '- ₹' + pricing.totalDiscount.toLocaleString();
-                        discountEl.style.display = 'flex';
-                    } else {
-                        discountEl.style.display = 'none';
-                    }
-
-                } else {
-                    console.error('Failed to load cart summary');
-                }
-            } catch (error) {
-                console.error('Error loading cart:', error);
-                alert('Failed to load order summary. Check console for details.');
-            }
+        if (!response.ok) {
+            console.error('Cart API responded with status', response.status);
+            const text = await response.text();
+            console.error('Response body:', text);
+            alert('Failed to load order summary (server error). Check console for details.');
+            return;
         }
 
-        async function placeOrder() {
-            const token = localStorage.getItem('token');
-            
-            const fullName = document.getElementById('fullName').value.trim();
-            const phone = document.getElementById('phone').value.trim();
-            const address = document.getElementById('address').value.trim();
-            const city = document.getElementById('city').value.trim();
-            const pincode = document.getElementById('pincode').value.trim();
-            const state = document.getElementById('state').value.trim();
-            const landmark = document.getElementById('landmark').value.trim();
+        const data = await response.json();
+        console.log('Cart API response:', data); 
 
-            if (!fullName || !phone || !address || !city || !pincode || !state) {
-                alert('Please fill in all required fields');
-                return;
-            }
-
-            if (phone.length !== 10 || isNaN(phone)) {
-                alert('Please enter a valid 10-digit phone number');
-                return;
-            }
-
-            const shippingAddress = { 
-                fullName, 
-                phone, 
-                address, 
-                city, 
-                pincode, 
-                state, 
-                landmark 
-            };
-            
-            const btn = document.getElementById('placeOrderBtn');
-            btn.disabled = true;
-            btn.textContent = 'Processing...';
-
-            try {
-                const response = await fetch(`${API_URL}/orders/create`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
-                    },
-                    body: JSON.stringify({ shippingAddress })
-                });
-                
-                const data = await response.json();
-                
-                if (data.success) {
-                    document.getElementById('successOverlay').classList.add('active');
-                } else {
-                    alert(data.message || 'Failed to place order');
-                    btn.disabled = false;
-                    btn.textContent = 'PLACE ORDER';
-                }
-            } catch (error) {
-                console.error('Order error:', error);
-                alert('Failed to place order. Please try again.');
-                btn.disabled = false;
-                btn.textContent = 'PLACE ORDER';
-            }
+        if (!data || !data.success) {
+            console.error('Cart API returned failure or unexpected payload', data);
+            alert(data && data.message ? data.message : 'Failed to load cart summary.');
+            return;
         }
+
+        const cartItems = Array.isArray(data.cartItems) ? data.cartItems : [];
+        if (cartItems.length === 0) {
+            alert("Your cart is empty!");
+            window.location.href = 'cart.html';
+            return;
+        }
+
+        const pricingFromApi = data.pricing && typeof data.pricing === 'object' ? data.pricing : null;
+        const pricing = pricingFromApi || computePricingFallback(cartItems);
+
+        const totalMrp = Number(pricing.totalMrp || 0);
+        const totalDiscount = Number(pricing.totalDiscount || 0);
+        const finalAmount = Number(pricing.finalAmount || 0);
+
+        cartTotal = finalAmount || 0;
+
+        const itemCount = cartItems.reduce((sum, item) => sum + Number(item.quantity || 1), 0);
+
+        document.getElementById('itemCount').textContent = itemCount;
+        document.getElementById('itemsTotal').textContent = '₹' + totalMrp.toLocaleString();
+        document.getElementById('totalAmount').textContent = '₹' + finalAmount.toLocaleString();
+
+        const discountEl = document.getElementById('discount');
+        if (totalDiscount > 0) {
+            discountEl.textContent = '- ₹' + totalDiscount.toLocaleString();
+            discountEl.style.display = 'flex';
+        } else {
+            discountEl.style.display = 'none';
+        }
+        const placeBtn = document.getElementById('placeOrderBtn');
+        placeBtn.disabled = finalAmount <= 0;
+
+    } catch (error) {
+        console.error('Error loading cart:', error);
+        alert('Failed to load order summary. Check console for details.');
+    }
+}
+
+function computePricingFallback(items) {
+    const totals = items.reduce((acc, item) => {
+        const qty = Number(item.quantity || 1);
+        const mrpEach = Number(item.price || 0);
+        const sellingEach = Number(item.discount_price != null ? item.discount_price : item.price || 0);
+        acc.totalMrp += mrpEach * qty;
+        acc.totalDiscount += (mrpEach - sellingEach) * qty;
+        acc.finalAmount += sellingEach * qty;
+        return acc;
+    }, { totalMrp: 0, totalDiscount: 0, finalAmount: 0 });
+
+    totals.totalMrp = Math.round(totals.totalMrp * 100) / 100;
+    totals.totalDiscount = Math.round(totals.totalDiscount * 100) / 100;
+    totals.finalAmount = Math.round(totals.finalAmount * 100) / 100;
+
+    return totals;
+}
+
+async function placeOrder() {
+    const token = localStorage.getItem('token');
+
+    // Basic validation of address fields
+    const fullName = document.getElementById('fullName').value.trim();
+    const phone = document.getElementById('phone').value.trim();
+    const address = document.getElementById('address').value.trim();
+    const city = document.getElementById('city').value.trim();
+    const pincode = document.getElementById('pincode').value.trim();
+    const state = document.getElementById('state').value.trim();
+    const landmark = document.getElementById('landmark').value.trim();
+
+    if (!fullName || !phone || !address || !city || !pincode || !state) {
+        alert('Please fill in all required fields');
+        return;
+    }
+
+    if (phone.length !== 10 || isNaN(phone)) {
+        alert('Please enter a valid 10-digit phone number');
+        return;
+    }
+
+    // Prevent placing order if cartTotal is zero or not set
+    if (!cartTotal || cartTotal <= 0) {
+        alert('Cart total is invalid. Please check your cart before placing order.');
+        return;
+    }
+
+    const shippingAddress = {
+        fullName,
+        phone,
+        address,
+        city,
+        pincode,
+        state,
+        landmark
+    };
+
+    const btn = document.getElementById('placeOrderBtn');
+    btn.disabled = true;
+    btn.textContent = 'Processing...';
+
+    try {
+        const response = await fetch(`${API_URL}/orders/create`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ shippingAddress })
+        });
+
+        if (!response.ok) {
+            const text = await response.text();
+            console.error('Order API error:', response.status, text);
+            alert('Failed to place order. Server error.');
+            btn.disabled = false;
+            btn.textContent = 'PLACE ORDER';
+            return;
+        }
+
+        const data = await response.json();
+        if (data.success) {
+            document.getElementById('successOverlay').classList.add('active');
+        } else {
+            alert(data.message || 'Failed to place order');
+            btn.disabled = false;
+            btn.textContent = 'PLACE ORDER';
+        }
+    } catch (error) {
+        console.error('Order error:', error);
+        alert('Failed to place order. Please try again.');
+        btn.disabled = false;
+        btn.textContent = 'PLACE ORDER';
+    }
+}
     </script>
 </body>
 
 </html>
+
