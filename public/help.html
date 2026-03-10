@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Help Center - Flipkart</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/static.css">
+    <style>
+        .help-nav { display: flex; gap: 10px; margin-bottom: 30px; border-bottom: 2px solid #f1f3f6; padding-bottom: 10px; flex-wrap: wrap; }
+        .help-nav a { padding: 8px 16px; background: #f1f3f6; border-radius: 20px; text-decoration: none; color: #212121; font-weight: 500; font-size: 14px; transition: 0.3s; }
+        .help-nav a:hover, .help-nav a.active { background: #2874f0; color: white; }
+        .help-section { margin-bottom: 40px; }
+    </style>
+</head>
+<body>
+    <header class="static-header">
+        <div class="logo" onclick="window.location.href='index.html'">
+            <img src="https://static-assets-web.flixcart.com/batman-returns/batman-returns/p/images/fkheaderlogo_exploreplus-44005d.svg" alt="Flipkart">
+        </div>
+        <div class="nav-links">
+            <a href="index.html">Home</a>
+        </div>
+    </header>
+
+    <div class="static-container">
+        <h1>Help Center</h1>
+        
+        <nav class="help-nav">
+            <a href="#shipping" class="active">Shipping</a>
+            <a href="#returns">Returns & Cancellation</a>
+            <a href="#faq">FAQ</a>
+        </nav>
+
+        <div id="shipping" class="help-section">
+            <h2><i class="fas fa-truck"></i> Shipping Policy</h2>
+            <p>We strive to deliver your products safely and on time.</p>
+            
+            <div class="faq-item">
+                <h3>How long does delivery take?</h3>
+                <p>Standard delivery takes 4-6 business days. Express delivery (if available) takes 1-2 business days.</p>
+            </div>
+            <div class="faq-item">
+                <h3>What are the shipping charges?</h3>
+                <p>We offer FREE shipping on all orders above ₹499. For orders below this amount, a flat fee of ₹40 is applied.</p>
+            </div>
+            <div class="faq-item">
+                <h3>Do you ship internationally?</h3>
+                <p>Currently, we only ship within India. International shipping will be available soon.</p>
+            </div>
+        </div>
+
+        <div id="returns" class="help-section">
+            <h2><i class="fas fa-undo"></i> Cancellation & Returns</h2>
+            
+            <div class="faq-item">
+                <h3>How do I return a product?</h3>
+                <p>You can initiate a return within 7 days of delivery. Go to "My Orders", select the item, and click "Return".</p>
+            </div>
+            <div class="faq-item">
+                <h3>When will I get my refund?</h3>
+                <p>Refunds are processed within 5-7 business days after we receive and inspect the returned item.</p>
+            </div>
+            <div class="faq-item">
+                <h3>Can I cancel my order?</h3>
+                <p>Yes, you can cancel your order before it is shipped. Once shipped, you will have to reject the delivery or initiate a return.</p>
+            </div>
+        </div>
+
+        <div id="faq" class="help-section">
+            <h2><i class="fas fa-question-circle"></i> Frequently Asked Questions</h2>
+            
+            <div class="faq-item">
+                <h3>How do I create an account?</h3>
+                <p>Click on the "Login" button on the top right, then select "Sign Up". Fill in your details to create an account.</p>
+            </div>
+            <div class="faq-item">
+                <h3>I forgot my password. What should I do?</h3>
+                <p>On the login page, click "Forgot Password". Enter your email to receive a reset link. (Note: This is a demo feature).</p>
+            </div>
+            <div class="faq-item">
+                <h3>Is my payment information safe?</h3>
+                <p>We do not store your credit/debit card details. All transactions are encrypted and processed via secure payment gateways.</p>
+            </div>
+        </div>
+    </div>
+
+    <footer class="static-footer">
+        &copy; 2024 Flipkart. For Educational Purposes Only.
+    </footer>
+
+    <script>
+        document.querySelectorAll('.help-nav a').forEach(anchor => {
+            anchor.addEventListener('click', function(e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                
+                document.querySelectorAll('.help-nav a').forEach(a => a.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+    </script>
+</body>
+</html>

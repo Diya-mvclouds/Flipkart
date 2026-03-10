@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checkout - Flipkart Clone</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Reset & Base Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            background: #f1f3f6;
+            min-height: 100vh;
+            color: #212121;
+        }
+
+        /* Header */
+        .header {
+            background: #2874f0;
+            padding: 12px 20px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .logo img {
+            height: 25px;
+            filter: brightness(0) invert(1);
+            cursor: pointer;
+        }
+
+        .header-text {
+            color: white;
+            font-size: 18px;
+            font-weight: 500;
+        }
+
+        /* Layout */
+        .checkout-container {
+            max-width: 1000px;
+            margin: 20px auto;
+            padding: 0 20px;
+            display: grid;
+            grid-template-columns: 1fr 350px;
+            gap: 20px;
+        }
+
+        /* Cards */
+        .step-card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 16px;
+            overflow: hidden;
+        }
+
+        .step-header {
+            padding: 16px 20px;
+            background: #f5f5f5;
+            border-bottom: 1px solid #e0e0e0;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .step-number {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: #2874f0;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .step-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #212121;
+        }
+
+        .step-content {
+            padding: 20px;
+        }
+
+        /* Forms */
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 13px;
+            color: #666;
+            font-weight: 500;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+            font-size: 14px;
+            transition: border 0.3s ease;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #2874f0;
+        }
+
+        /* Payment Options */
+        .payment-options {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .payment-option {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 16px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .payment-option:hover {
+            border-color: #2874f0;
+            background: #f5f8ff;
+        }
+
+        .payment-option.selected {
+            border-color: #2874f0;
+            background: #f5f8ff;
+        }
+
+        .payment-option input {
+            display: none;
+        }
+
+        .payment-icon {
+            width: 50px;
+            height: 50px;
+            background: #f5f5f5;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+
+        .order-summary {
+            position: sticky;
+            top: 20px;
+        }
+
+        .summary-card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .summary-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid #e0e0e0;
+            font-weight: 600;
+            color: #878787;
+            text-transform: uppercase;
+            font-size: 13px;
+        }
+
+        .summary-body {
+            padding: 20px;
+        }
+
+        .summary-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 12px;
+            font-size: 14px;
+        }
+
+        .summary-item.total {
+            padding-top: 16px;
+            border-top: 1px dashed #e0e0e0;
+            font-size: 18px;
+            font-weight: 700;
+            margin-top: 16px;
+        }
+
+        .place-order-btn {
+            width: 100%;
+            background: #fb641b;
+            color: white;
+            padding: 16px;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 16px;
+            transition: background 0.3s;
+        }
+
+        .place-order-btn:hover {
+            background: #ed5a0f;
+        }
+
+        .place-order-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .success-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255,255,255,0.95);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
+
+        .success-overlay.active {
+            display: flex;
+        }
+
+        .success-content {
+            text-align: center;
+            padding: 20px;
+        }
+
+        .success-icon {
+            width: 100px;
+            height: 100px;
+            background: #00b85c;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            animation: scaleIn 0.5s ease;
+        }
+
+        @keyframes scaleIn {
+            from { transform: scale(0); }
+            to { transform: scale(1); }
+        }
+
+        .success-icon i {
+            font-size: 50px;
+            color: white;
+        }
+
+        .success-title {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: #00b85c;
+        }
+
+        .success-btn {
+            background: #2874f0;
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            margin-top: 20px;
+            cursor: pointer;
+        }
+
+        @media (max-width: 768px) {
+            .checkout-container {
+                grid-template-columns: 1fr;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            .order-summary {
+                position: static;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="logo">
+            <img src="https://static-assets-web.flixcart.com/batman-returns/batman-returns/p/images/fkheaderlogo_exploreplus-44005d.svg" alt="Flipkart" onclick="window.location.href='index.html'">
+        </div>
+        <span class="header-text">Checkout</span>
+    </header>
+
+    <div class="checkout-container">
+        <div class="checkout-steps">
+            <div class="step-card">
+                <div class="step-header">
+                    <span class="step-number">1</span>
+                    <span class="step-title">Delivery Address</span>
+                </div>
+                <div class="step-content">
+                    <form id="addressForm">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Full Name *</label>
+                                <input type="text" id="fullName" required placeholder="Enter your full name">
+                            </div>
+                            <div class="form-group">
+                                <label>Phone Number *</label>
+                                <input type="tel" id="phone" required placeholder="10 digit mobile number">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Address (House No, Building, Street) *</label>
+                            <textarea id="address" required rows="3" placeholder="Enter complete address"></textarea>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>City *</label>
+                                <input type="text" id="city" required placeholder="Enter city">
+                            </div>
+                            <div class="form-group">
+                                <label>Pincode *</label>
+                                <input type="text" id="pincode" required maxlength="6" placeholder="Enter pincode">
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>State *</label>
+                                <input type="text" id="state" required placeholder="Enter state">
+                            </div>
+                            <div class="form-group">
+                                <label>Landmark (Optional)</label>
+                                <input type="text" id="landmark" placeholder="Nearby landmark">
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div class="step-card">
+                <div class="step-header">
+                    <span class="step-number">2</span>
+                    <span class="step-title">Payment Options</span>
+                </div>
+                <div class="step-content">
+                    <div class="payment-options">
+                        <label class="payment-option selected">
+                            <input type="radio" name="payment" value="cod" checked>
+                            <div class="payment-icon">
+                                <i class="fas fa-money-bill-wave" style="color: #00b85c;"></i>
+                            </div>
+                            <div>
+                                <p style="font-weight: 600;">Cash on Delivery</p>
+                                <p style="font-size: 12px; color: #878787;">Pay when you receive the product</p>
+                            </div>
+                        </label>
+                        <label class="payment-option">
+                            <input type="radio" name="payment" value="card">
+                            <div class="payment-icon">
+                                <i class="fas fa-credit-card" style="color: #2874f0;"></i>
+                            </div>
+                            <div>
+                                <p style="font-weight: 600;">Credit / Debit Card</p>
+                                <p style="font-size: 12px; color: #878787;">Visa, Mastercard, RuPay</p>
+                            </div>
+                        </label>
+                        <label class="payment-option">
+                            <input type="radio" name="payment" value="upi">
+                            <div class="payment-icon">
+                                <i class="fas fa-mobile-alt" style="color: #5f259f;"></i>
+                            </div>
+                            <div>
+                                <p style="font-weight: 600;">UPI</p>
+                                <p style="font-size: 12px; color: #878787;">Google Pay, PhonePe, Paytm</p>
+                            </div>
+                        </label>
+                        <label class="payment-option">
+                            <input type="radio" name="payment" value="netbanking">
+                            <div class="payment-icon">
+                                <i class="fas fa-university" style="color: #ff9f00;"></i>
+                            </div>
+                            <div>
+                                <p style="font-weight: 600;">Net Banking</p>
+                                <p style="font-size: 12px; color: #878787;">All major banks supported</p>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="order-summary">
+            <div class="summary-card">
+                <div class="summary-header">Order Summary</div>
+                <div class="summary-body">
+                    <div class="summary-item">
+                        <span>Items (<span id="itemCount">0</span>)</span>
+                        <span id="itemsTotal">₹0</span>
+                    </div>
+                    <div class="summary-item">
+                        <span>Delivery</span>
+                        <span style="color: #00b85c;">FREE</span>
+                    </div>
+                    <div class="summary-item">
+                        <span>Discount</span>
+                        <span style="color: #00b85c;" id="discount">- ₹0</span>
+                    </div>
+                    <div class="summary-item total">
+                        <span>Total Amount</span>
+                        <span id="totalAmount">₹0</span>
+                    </div>
+                    <button class="place-order-btn" id="placeOrderBtn" onclick="placeOrder()">
+                        PLACE ORDER
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="success-overlay" id="successOverlay">
+        <div class="success-content">
+            <div class="success-icon">
+                <i class="fas fa-check"></i>
+            </div>
+            <h2 class="success-title">Order Placed Successfully!</h2>
+            <p style="color: #666; margin-bottom: 20px;">Thank you for shopping with us. Your order will be delivered soon.</p>
+            <button class="success-btn" onclick="window.location.href='index.html'">Continue Shopping</button>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:3000/api';
+        let cartTotal = 0;
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const token = localStorage.getItem('token');
+            
+            if (!token) {
+                window.location.href = 'login.html';
+                return;
+            }
+            
+            loadCartSummary();
+            
+            document.querySelectorAll('.payment-option').forEach(option => {
+                option.addEventListener('click', function() {
+                    document.querySelectorAll('.payment-option').forEach(opt => opt.classList.remove('selected'));
+                    this.classList.add('selected');
+                });
+            });
+        });
+
+        async function loadCartSummary() {
+            const token = localStorage.getItem('token');
+            
+            try {
+                const response = await fetch(`${API_URL}/cart`, {
+                    headers: { 
+                        'Authorization': `Bearer ${token}` 
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    if (data.cartItems.length === 0) {
+                        alert("Your cart is empty!");
+                        window.location.href = 'cart.html';
+                        return;
+                    }
+
+                    const pricing = data.pricing;
+                    cartTotal = pricing.finalAmount;
+
+                    const itemCount = data.cartItems.reduce((sum, item) => sum + item.quantity, 0);
+                    
+                    document.getElementById('itemCount').textContent = itemCount;
+                    document.getElementById('itemsTotal').textContent = '₹' + pricing.totalMrp.toLocaleString();
+                    document.getElementById('totalAmount').textContent = '₹' + pricing.finalAmount.toLocaleString();
+                    
+                    const discountEl = document.getElementById('discount');
+                    if (pricing.totalDiscount > 0) {
+                        discountEl.textContent = '- ₹' + pricing.totalDiscount.toLocaleString();
+                        discountEl.style.display = 'flex';
+                    } else {
+                        discountEl.style.display = 'none';
+                    }
+
+                } else {
+                    console.error('Failed to load cart summary');
+                }
+            } catch (error) {
+                console.error('Error loading cart:', error);
+                alert('Failed to load order summary. Check console for details.');
+            }
+        }
+
+        async function placeOrder() {
+            const token = localStorage.getItem('token');
+            
+            const fullName = document.getElementById('fullName').value.trim();
+            const phone = document.getElementById('phone').value.trim();
+            const address = document.getElementById('address').value.trim();
+            const city = document.getElementById('city').value.trim();
+            const pincode = document.getElementById('pincode').value.trim();
+            const state = document.getElementById('state').value.trim();
+            const landmark = document.getElementById('landmark').value.trim();
+
+            if (!fullName || !phone || !address || !city || !pincode || !state) {
+                alert('Please fill in all required fields');
+                return;
+            }
+
+            if (phone.length !== 10 || isNaN(phone)) {
+                alert('Please enter a valid 10-digit phone number');
+                return;
+            }
+
+            const shippingAddress = { 
+                fullName, 
+                phone, 
+                address, 
+                city, 
+                pincode, 
+                state, 
+                landmark 
+            };
+            
+            const btn = document.getElementById('placeOrderBtn');
+            btn.disabled = true;
+            btn.textContent = 'Processing...';
+
+            try {
+                const response = await fetch(`${API_URL}/orders/create`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ shippingAddress })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    document.getElementById('successOverlay').classList.add('active');
+                } else {
+                    alert(data.message || 'Failed to place order');
+                    btn.disabled = false;
+                    btn.textContent = 'PLACE ORDER';
+                }
+            } catch (error) {
+                console.error('Order error:', error);
+                alert('Failed to place order. Please try again.');
+                btn.disabled = false;
+                btn.textContent = 'PLACE ORDER';
+            }
+        }
+    </script>
+</body>
+</html>
