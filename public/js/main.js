@@ -1,7 +1,6 @@
-// Automatically switch API URL based on environment
 const API_URL = window.location.hostname.includes('localhost')
-    ? 'http://localhost:3000/api' // Local backend
-    : 'https://flipkart1-0xel.onrender.com/api'; // Hosted backend on Render
+    ? 'http://localhost:3000/api'
+    // : 'https://flipkart1-0xel.onrender.com/api';
 
 let currentPage = 1;
 let currentCategory = null;
@@ -17,7 +16,6 @@ document.addEventListener('DOMContentLoaded', function() {
     initCategories();
 });
 
-// ---------------- AUTH ----------------
 function checkAuth() {
     const token = localStorage.getItem('token');
     const user = JSON.parse(localStorage.getItem('user') || 'null');
@@ -73,14 +71,12 @@ function logout() {
     loadCartCount();
 }
 
-// Close dropdown on outside click
 document.addEventListener('click', function(e) {
     const dropdown = document.getElementById('userDropdown');
     const loginSection = document.querySelector('.login-section');
     if (!loginSection.contains(e.target)) dropdown.classList.remove('active');
 });
 
-// ---------------- PRODUCTS ----------------
 async function loadProducts(reset = true) {
     if (reset) currentPage = 1;
 
@@ -180,7 +176,6 @@ function loadMoreProducts() {
     loadProducts(false);
 }
 
-// ---------------- CART ----------------
 async function addToCart(productId, event) {
     event.stopPropagation();
     const token = localStorage.getItem('token');
@@ -236,7 +231,6 @@ async function loadCartCount() {
     }
 }
 
-// ---------------- CAROUSEL ----------------
 let currentSlide = 0;
 let slideInterval;
 
@@ -263,7 +257,6 @@ function updateCarousel() {
 function startAutoSlide() { slideInterval = setInterval(() => changeSlide(1), 5000); }
 function resetAutoSlide() { clearInterval(slideInterval); startAutoSlide(); }
 
-// ---------------- SEARCH ----------------
 function initSearch() {
     const searchInput = document.getElementById('searchInput');
     let debounceTimer;
@@ -279,7 +272,6 @@ function initSearch() {
     });
 }
 
-// ---------------- CATEGORIES ----------------
 function initCategories() {
     const categoryItems = document.querySelectorAll('.category-item');
     categoryItems.forEach(item => {
@@ -293,7 +285,6 @@ function initCategories() {
     });
 }
 
-// ---------------- TOAST ----------------
 function showToast(message) {
     const toast = document.getElementById('toast');
     const toastMessage = document.getElementById('toastMessage');
