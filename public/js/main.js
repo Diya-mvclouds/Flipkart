@@ -1,6 +1,6 @@
 const API_URL = window.location.hostname.includes('localhost')
     ? 'http://localhost:3000/api'
-    // : 'https://flipkart1-0xel.onrender.com/api';
+    : 'https://flipkart1-0xel.onrender.com/api';
 
 let currentPage = 1;
 let currentCategory = null;
@@ -292,3 +292,4 @@ function showToast(message) {
     toast.classList.add('active');
     setTimeout(() => toast.classList.remove('active'), 3000);
 }
+
