@@ -198,9 +198,9 @@ function renderProducts(products, container) {
                 </div>
 
                 <button class="add-to-cart-btn"
-                    onclick="addToCart(69b014883d394aef8ab8e074, event)"
-                    <i class="fas fa-shopping-cart"></i>
-                    Add to Cart
+                onclick="addToCart('${product.id}')">
+                <i class="fas fa-shopping-cart"></i>
+                Add to Cart
                 </button>
 
             </div>
@@ -222,13 +222,16 @@ function loadMoreProducts() {
 }
 
 async function addToCart(productId) {
+
     const token = localStorage.getItem('token');
 
     if (!token) {
         window.location.href = "login.html";
         return;
     }
+
     try {
+
         const res = await fetch(`${API_URL}/cart/add`, {
             method: "POST",
             headers: {
@@ -242,12 +245,14 @@ async function addToCart(productId) {
         });
 
         const data = await res.json();
+
         if (data.success) {
             showToast("Product added to cart");
             updateCartCount();
         } else {
             showToast("Failed to add to cart");
         }
+
     } catch (err) {
         console.error("Add to cart error:", err);
         showToast("Network error");
@@ -334,6 +339,7 @@ function showToast(message) {
     toast.classList.add('active');
     setTimeout(() => toast.classList.remove('active'), 3000);
 }
+
 
 
 
