@@ -198,7 +198,7 @@ function renderProducts(products, container) {
                 </div>
 
                 <button class="add-to-cart-btn"
-                    onclick="addToCart('${product.id}', event)">
+                    onclick="addToCart(69b014883d394aef8ab8e074, event)"
                     <i class="fas fa-shopping-cart"></i>
                     Add to Cart
                 </button>
@@ -334,6 +334,7 @@ function showToast(message) {
     toast.classList.add('active');
     setTimeout(() => toast.classList.remove('active'), 3000);
 }
+
 
 
 
