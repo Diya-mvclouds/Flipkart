@@ -342,27 +342,33 @@
       let cartData = [];
 
         document.addEventListener('DOMContentLoaded', () => {
-  const cartList = document.getElementById('cartItemsList');
-  if (!cartList) return;
-
-  cartList.addEventListener('click', function (e) {
-    const actionEl = e.target.closest('[data-action]');
-    if (!actionEl) return;
-
-    const action = actionEl.getAttribute('data-action');
-    const id = actionEl.getAttribute('data-id');
-    let qty = Number(actionEl.getAttribute('data-qty') || 0);
-
-    if (action === 'increase') {
-      const newQty = qty + 1;
-      updateQuantity(id, newQty);
-    } else if (action === 'decrease') {
-      const newQty = Math.max(1, qty - 1);
-      updateQuantity(id, newQty);
-    } else if (action === 'remove') {
-      if (!confirm('Remove this item from cart?')) return;
-      removeItem(id);
-    }
+             const token = localStorage.getItem('token');
+            if (!token) {
+                window.location.href = 'login.html';
+                return;
+            }
+            loadCart();
+      const cartList = document.getElementById('cartItemsList');
+      if (!cartList) return;
+    
+      cartList.addEventListener('click', function (e) {
+        const actionEl = e.target.closest('[data-action]');
+        if (!actionEl) return;
+    
+        const action = actionEl.getAttribute('data-action');
+        const id = actionEl.getAttribute('data-id');
+        let qty = Number(actionEl.getAttribute('data-qty') || 0);
+    
+        if (action === 'increase') {
+          const newQty = qty + 1;
+          updateQuantity(id, newQty);
+        } else if (action === 'decrease') {
+          const newQty = Math.max(1, qty - 1);
+          updateQuantity(id, newQty);
+        } else if (action === 'remove') {
+          if (!confirm('Remove this item from cart?')) return;
+          removeItem(id);
+        }
   });
 
 
@@ -554,6 +560,7 @@ function renderCart(items, pricing) {
 </body>
 
 </html>
+
 
 
 
