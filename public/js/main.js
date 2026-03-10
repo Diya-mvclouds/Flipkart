@@ -1,4 +1,8 @@
-const API_URL = 'http://localhost:3000/api';
+// Automatically switch API URL based on environment
+const API_URL = window.location.hostname.includes('localhost')
+    ? 'http://localhost:3000/api' // Local backend
+    : 'https://flipkart1-0xel.onrender.com/api'; // Hosted backend on Render
+
 let currentPage = 1;
 let currentCategory = null;
 let currentSearch = '';
@@ -13,22 +17,19 @@ document.addEventListener('DOMContentLoaded', function() {
     initCategories();
 });
 
-
+// ---------------- AUTH ----------------
 function checkAuth() {
     const token = localStorage.getItem('token');
     const user = JSON.parse(localStorage.getItem('user') || 'null');
-    
     updateAuthUI(!!token, user);
 }
 
 function updateAuthUI(isLoggedIn, user) {
-    const loginBtn = document.getElementById('loginBtn');
     const authText = document.getElementById('authText');
     const userMenuItems = document.getElementById('userMenuItems');
-    
+
     if (isLoggedIn && user) {
         authText.textContent = user.name;
-        
         userMenuItems.innerHTML = `
             <div class="dropdown-item" onclick="window.location.href='checkout.html'">
                 <i class="fas fa-box"></i>
@@ -56,16 +57,12 @@ function updateAuthUI(isLoggedIn, user) {
 
 function handleAuthClick() {
     const token = localStorage.getItem('token');
-    if (token) {
-        toggleDropdown();
-    } else {
-        window.location.href = 'login.html';
-    }
+    if (token) toggleDropdown();
+    else window.location.href = 'login.html';
 }
 
 function toggleDropdown() {
-    const dropdown = document.getElementById('userDropdown');
-    dropdown.classList.toggle('active');
+    document.getElementById('userDropdown').classList.toggle('active');
 }
 
 function logout() {
@@ -76,80 +73,74 @@ function logout() {
     loadCartCount();
 }
 
+// Close dropdown on outside click
 document.addEventListener('click', function(e) {
     const dropdown = document.getElementById('userDropdown');
     const loginSection = document.querySelector('.login-section');
-    
-    if (!loginSection.contains(e.target)) {
-        dropdown.classList.remove('active');
-    }
+    if (!loginSection.contains(e.target)) dropdown.classList.remove('active');
 });
 
+// ---------------- PRODUCTS ----------------
 async function loadProducts(reset = true) {
-    if (reset) {
-        currentPage = 1;
-    }
-    
+    if (reset) currentPage = 1;
+
     const grid = document.getElementById('allProductsGrid');
     grid.innerHTML = '<div class="loading"></div>';
-    
+
     try {
         let url = `${API_URL}/products?page=${currentPage}&limit=20`;
-        
-        if (currentCategory) {
-            url += `&category=${currentCategory}`;
-        }
-        
-        if (currentSearch) {
-            url += `&search=${encodeURIComponent(currentSearch)}`;
-        }
-        
+
+        if (currentCategory) url += `&category=${currentCategory}`;
+        if (currentSearch) url += `&search=${encodeURIComponent(currentSearch)}`;
+
         const response = await fetch(url);
+        if (!response.ok) throw new Error(`HTTP error ${response.status}`);
         const data = await response.json();
-        
-        if (data.success) {
-            if (reset) {
-                grid.innerHTML = '';
-            }
-            
+
+        if (data.success && Array.isArray(data.products)) {
+            if (reset) grid.innerHTML = '';
             renderProducts(data.products, grid);
-            
+
             const loadMoreBtn = document.getElementById('loadMoreBtn');
-            if (data.pagination.currentPage >= data.pagination.totalPages) {
+            if (!data.pagination || data.pagination.currentPage >= data.pagination.totalPages) {
                 loadMoreBtn.style.display = 'none';
-            } else {
-                loadMoreBtn.style.display = 'inline-block';
-            }
+            } else loadMoreBtn.style.display = 'inline-block';
+        } else {
+            grid.innerHTML = `<p style="text-align:center;color:#666;">No products found.</p>`;
         }
     } catch (error) {
         console.error('Error loading products:', error);
-        grid.innerHTML = '<p style="text-align: center; color: #666;">Failed to load products. Please try again.</p>';
+        grid.innerHTML = `<p style="text-align:center;color:#666;">Failed to load products. Please check backend or try later.</p>`;
     }
 }
 
 async function loadDeals() {
     const grid = document.getElementById('dealsGrid');
     grid.innerHTML = '<div class="loading"></div>';
-    
+
     try {
         const response = await fetch(`${API_URL}/products?limit=8`);
+        if (!response.ok) throw new Error(`HTTP error ${response.status}`);
         const data = await response.json();
-        
-        if (data.success) {
+
+        if (data.success && Array.isArray(data.products)) {
             grid.innerHTML = '';
             renderProducts(data.products, grid);
+        } else {
+            grid.innerHTML = `<p style="text-align:center;color:#666;">No deals found.</p>`;
         }
     } catch (error) {
         console.error('Error loading deals:', error);
+        grid.innerHTML = `<p style="text-align:center;color:#666;">Failed to load deals.</p>`;
     }
 }
 
 function renderProducts(products, container) {
     products.forEach(product => {
-        const discount = product.discount_price 
+        const discount = product.discount_price
             ? Math.round(((product.price - product.discount_price) / product.price) * 100)
             : 0;
-        
+
         const card = document.createElement('div');
         card.className = 'product-card';
         card.innerHTML = `
@@ -173,13 +164,13 @@ function renderProducts(products, container) {
                 </button>
             </div>
         `;
-        
+
         card.addEventListener('click', function(e) {
             if (!e.target.closest('.add-to-cart-btn')) {
                 window.location.href = `product.html?id=${product.id}`;
             }
         });
-        
+
         container.appendChild(card);
     });
 }
@@ -189,37 +180,34 @@ function loadMoreProducts() {
     loadProducts(false);
 }
 
+// ---------------- CART ----------------
 async function addToCart(productId, event) {
     event.stopPropagation();
-    
     const token = localStorage.getItem('token');
-    
+
     if (!token) {
         showToast('Please login to add items to cart!');
-        setTimeout(() => {
-            window.location.href = 'login.html';
-        }, 1500);
+        setTimeout(() => window.location.href = 'login.html', 1500);
         return;
     }
-    
+
     try {
         const response = await fetch(`${API_URL}/cart/add`, {
             method: 'POST',
-            headers: {
+            headers: { 
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
+                'Authorization': `Bearer ${token}` 
             },
             body: JSON.stringify({ productId, quantity: 1 })
         });
-        
+
+        if (!response.ok) throw new Error(`HTTP error ${response.status}`);
         const data = await response.json();
-        
+
         if (data.success) {
             showToast('Product added to cart!');
             loadCartCount();
-        } else {
-            showToast(data.message || 'Failed to add to cart');
-        }
+        } else showToast(data.message || 'Failed to add to cart');
     } catch (error) {
         console.error('Add to cart error:', error);
         showToast('Failed to add to cart');
@@ -229,21 +217,16 @@ async function addToCart(productId, event) {
 async function loadCartCount() {
     const token = localStorage.getItem('token');
     const cartCountEl = document.getElementById('cartCount');
-    
-    if (!token) {
-        cartCountEl.textContent = '0';
-        return;
-    }
-    
+    if (!token) return cartCountEl.textContent = '0';
+
     try {
         const response = await fetch(`${API_URL}/cart`, {
-            headers: {
-                'Authorization': `Bearer ${token}`
-            }
+            headers: { 'Authorization': `Bearer ${token}` }
         });
-        
+
+        if (!response.ok) throw new Error(`HTTP error ${response.status}`);
         const data = await response.json();
-        
+
         if (data.success) {
             const count = data.cartItems.reduce((sum, item) => sum + item.quantity, 0);
             cartCountEl.textContent = count;
@@ -253,122 +236,68 @@ async function loadCartCount() {
     }
 }
 
-
+// ---------------- CAROUSEL ----------------
 let currentSlide = 0;
 let slideInterval;
 
 function initCarousel() {
     const slides = document.querySelectorAll('.slide');
     const dotsContainer = document.getElementById('carouselDots');
-    
     slides.forEach((_, index) => {
         const dot = document.createElement('span');
         dot.className = `dot ${index === 0 ? 'active' : ''}`;
         dot.onclick = () => goToSlide(index);
         dotsContainer.appendChild(dot);
     });
-    
     startAutoSlide();
 }
 
-function changeSlide(direction) {
-    const slides = document.querySelectorAll('.slide');
-    currentSlide += direction;
-    
-    if (currentSlide >= slides.length) currentSlide = 0;
-    if (currentSlide < 0) currentSlide = slides.length - 1;
-    
-    updateCarousel();
-    resetAutoSlide();
-}
-
-function goToSlide(index) {
-    currentSlide = index;
-    updateCarousel();
-    resetAutoSlide();
-}
-
+function changeSlide(direction) { currentSlide = (currentSlide + direction + document.querySelectorAll('.slide').length) % document.querySelectorAll('.slide').length; updateCarousel(); resetAutoSlide(); }
+function goToSlide(index) { currentSlide = index; updateCarousel(); resetAutoSlide(); }
 function updateCarousel() {
     const slides = document.querySelectorAll('.slide');
     const dots = document.querySelectorAll('.dot');
-    
-    slides.forEach((slide, index) => {
-        slide.classList.toggle('active', index === currentSlide);
-    });
-    
-    dots.forEach((dot, index) => {
-        dot.classList.toggle('active', index === currentSlide);
-    });
+    slides.forEach((slide, i) => slide.classList.toggle('active', i === currentSlide));
+    dots.forEach((dot, i) => dot.classList.toggle('active', i === currentSlide));
 }
+function startAutoSlide() { slideInterval = setInterval(() => changeSlide(1), 5000); }
+function resetAutoSlide() { clearInterval(slideInterval); startAutoSlide(); }
 
-function startAutoSlide() {
-    slideInterval = setInterval(() => {
-        changeSlide(1);
-    }, 5000);
-}
-
-function resetAutoSlide() {
-    clearInterval(slideInterval);
-    startAutoSlide();
-}
-
-
+// ---------------- SEARCH ----------------
 function initSearch() {
     const searchInput = document.getElementById('searchInput');
     let debounceTimer;
-    
     searchInput.addEventListener('input', function() {
         clearTimeout(debounceTimer);
         debounceTimer = setTimeout(() => {
             currentSearch = this.value.trim();
-            if (currentSearch.length >= 2) {
-                loadProducts();
-            } else if (currentSearch.length === 0) {
-                loadProducts();
-            }
+            loadProducts();
         }, 300);
     });
-    
     searchInput.addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') {
-            currentSearch = this.value.trim();
-            loadProducts();
-        }
+        if (e.key === 'Enter') { currentSearch = this.value.trim(); loadProducts(); }
     });
 }
 
-
+// ---------------- CATEGORIES ----------------
 function initCategories() {
     const categoryItems = document.querySelectorAll('.category-item');
-    
     categoryItems.forEach(item => {
         item.addEventListener('click', function() {
             const categoryId = this.dataset.category;
-            
-            if (currentCategory === categoryId) {
-                currentCategory = null;
-                this.classList.remove('active');
-            } else {
-                categoryItems.forEach(i => i.classList.remove('active'));
-                currentCategory = categoryId;
-                this.classList.add('active');
-            }
-            
+            if (currentCategory === categoryId) { currentCategory = null; this.classList.remove('active'); }
+            else { categoryItems.forEach(i => i.classList.remove('active')); currentCategory = categoryId; this.classList.add('active'); }
             loadProducts();
-            
             document.querySelector('.all-products-section').scrollIntoView({ behavior: 'smooth' });
         });
     });
 }
 
+// ---------------- TOAST ----------------
 function showToast(message) {
     const toast = document.getElementById('toast');
     const toastMessage = document.getElementById('toastMessage');
-    
     toastMessage.textContent = message;
     toast.classList.add('active');
-    
-    setTimeout(() => {
-        toast.classList.remove('active');
-    }, 3000);
+    setTimeout(() => toast.classList.remove('active'), 3000);
 }
