@@ -350,95 +350,136 @@
             loadCart();
         });
 
-        async function loadCart() {
-            const token = localStorage.getItem('token');
-            const cartList = document.getElementById('cartItemsList');
-            
-            try {
-                const response = await fetch(`${API_URL}/cart`, {
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    }
-                });
-                
-                const data = await response.json();
-                
-                if (data.success) {
-                    cartData = data.cartItems;
-                    renderCart(data.cartItems, data.pricing);
-                } else {
-                    cartList.innerHTML = '<p style="padding: 20px; text-align: center;">Failed to load cart. Please login again.</p>';
-                }
-            } catch (error) {
-                console.error('Error loading cart:', error);
-                cartList.innerHTML = '<p style="padding: 20px; text-align: center; color: red;">Network Error. Check console.</p>';
-            }
-        }
+        // Robust loadCart + renderCart with fallback pricing computation
 
-        function renderCart(items, pricing) {
-            const cartList = document.getElementById('cartItemsList');
-            
-            if (!items || items.length === 0) {
-                cartList.innerHTML = `
-                    <div class="empty-cart">
-                        <img src="https://rukminim1.flixcart.com/www/800/800/promos/16/05/2019/d438a32e-765a-4d8b-b4a6-520b560971e8.png?q=90" alt="Empty Cart">
-                        <h3>Your cart is empty!</h3>
-                        <p>Add items to it now.</p>
-                        <button class="shop-btn" onclick="window.location.href='index.html'">Shop Now</button>
-                    </div>
-                `;
-                document.getElementById('checkoutBtn').disabled = true;
-                document.getElementById('grandTotal').textContent = '₹0';
-                return;
-            }
+async function loadCart() {
+  const token = localStorage.getItem('token');
+  const cartList = document.getElementById('cartItemsList');
 
-            let html = '';
-            
-            items.forEach(item => {
-                const price = item.discount_price || item.price;
-                const discountPercent = item.discount_price 
-                    ? Math.round(((item.price - item.discount_price) / item.price) * 100)
-                    : 0;
-                
-                html += `
-                    <div class="cart-item" data-id="${item.cart_id}">
-                        <img src="${item.image_url}" alt="${item.name}" class="item-image"
-                             onerror="this.src='https://via.placeholder.com/120?text=No+Image'">
-                        <div class="item-details">
-                            <h3 class="item-name">${item.name}</h3>
-                            <p class="item-brand">${item.brand || 'Brand'}</p>
-                            <div class="item-price">
-                                <span class="current-price">₹${price.toLocaleString()}</span>
-                                ${item.discount_price ? `
-                                    <span class="original-price">₹${item.price.toLocaleString()}</span>
-                                    <span class="discount">${discountPercent}% off</span>
-                                ` : ''}
-                            </div>
-                            <div class="quantity-controls">
-                                <button class="qty-btn" onclick="updateQuantity(${item.cart_id}, ${item.quantity - 1})">-</button>
-                                <span class="qty-value">${item.quantity}</span>
-                                <button class="qty-btn" onclick="updateQuantity(${item.cart_id}, ${item.quantity + 1})">+</button>
-                                <div class="remove-btn" onclick="removeItem(${item.cart_id})">
-                                    <i class="fas fa-trash"></i> Remove
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            });
-            
-            cartList.innerHTML = html;
-            
-            const itemCount = items.reduce((sum, item) => sum + item.quantity, 0);
-            
-            document.getElementById('itemCount').textContent = itemCount;
-            document.getElementById('totalItems').textContent = itemCount;
-            document.getElementById('originalTotal').textContent = '₹' + pricing.totalMrp.toLocaleString();
-            document.getElementById('totalDiscount').textContent = '- ₹' + pricing.totalDiscount.toLocaleString();
-            document.getElementById('grandTotal').textContent = '₹' + pricing.finalAmount.toLocaleString();
-            
-            document.getElementById('checkoutBtn').disabled = false;
-        }
+  try {
+    const response = await fetch(`${API_URL}/cart`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+
+    // if not JSON or non-2xx, still try to show proper message
+    if (!response.ok) {
+      console.error('Cart API responded with status', response.status);
+      const text = await response.text();
+      console.error('Response body:', text);
+      cartList.innerHTML = '<p style="padding: 20px; text-align: center; color: red;">Failed to load cart (server error).</p>';
+      return;
+    }
+
+    const data = await response.json();
+    console.log('Cart API response:', data); // Inspect here
+
+    if (data && data.success) {
+      cartData = data.cartItems || [];
+      // If pricing missing, compute it client-side as fallback
+      const pricing = data.pricing || computePricingFallback(cartData);
+      renderCart(cartData, pricing);
+    } else {
+      cartList.innerHTML = '<p style="padding: 20px; text-align: center;">Failed to load cart. Please login again.</p>';
+    }
+  } catch (error) {
+    console.error('Error loading cart:', error);
+    cartList.innerHTML = '<p style="padding: 20px; text-align: center; color: red;">Network Error. Check console.</p>';
+  }
+}
+
+function computePricingFallback(items) {
+  // compute total MRP, total discount and final amount
+  // expects each item to have: price, discount_price (optional), quantity
+  const totals = items.reduce((acc, item) => {
+    const qty = Number(item.quantity || 1);
+    const mrpEach = Number(item.price || 0);
+    const sellingEach = Number(item.discount_price != null ? item.discount_price : item.price || 0);
+    acc.totalMrp += mrpEach * qty;
+    acc.totalDiscount += (mrpEach - sellingEach) * qty;
+    acc.finalAmount += sellingEach * qty;
+    return acc;
+  }, { totalMrp: 0, totalDiscount: 0, finalAmount: 0 });
+
+  // round numbers
+  totals.totalMrp = Math.round(totals.totalMrp * 100) / 100;
+  totals.totalDiscount = Math.round(totals.totalDiscount * 100) / 100;
+  totals.finalAmount = Math.round(totals.finalAmount * 100) / 100;
+
+  return totals;
+}
+
+function renderCart(items, pricing) {
+  const cartList = document.getElementById('cartItemsList');
+  if (!Array.isArray(items) || items.length === 0) {
+    cartList.innerHTML = `
+      <div class="empty-cart">
+        <img src="https://rukminim1.flixcart.com/www/800/800/promos/16/05/2019/d438a32e-765a-4d8b-b4a6-520b560971e8.png?q=90" alt="Empty Cart">
+        <h3>Your cart is empty!</h3>
+        <p>Add items to it now.</p>
+        <button class="shop-btn" onclick="window.location.href='index.html'">Shop Now</button>
+      </div>
+    `;
+    document.getElementById('checkoutBtn').disabled = true;
+    document.getElementById('grandTotal').textContent = '₹0';
+    document.getElementById('itemCount').textContent = '0';
+    document.getElementById('totalItems').textContent = '0';
+    document.getElementById('originalTotal').textContent = '₹0';
+    document.getElementById('totalDiscount').textContent = '- ₹0';
+    return;
+  }
+
+  let html = '';
+  items.forEach(item => {
+    const price = item.discount_price != null ? item.discount_price : item.price;
+    const discountPercent = (item.discount_price != null && item.price)
+      ? Math.round(((item.price - item.discount_price) / item.price) * 100)
+      : 0;
+
+    html += `
+      <div class="cart-item" data-id="${item.cart_id || item.id || ''}">
+        <img src="${item.image_url || ''}" alt="${(item.name || '')}" class="item-image"
+             onerror="this.src='https://via.placeholder.com/120?text=No+Image'">
+        <div class="item-details">
+          <h3 class="item-name">${item.name || ''}</h3>
+          <p class="item-brand">${item.brand || 'Brand'}</p>
+          <div class="item-price">
+            <span class="current-price">₹${Number(price || 0).toLocaleString()}</span>
+            ${item.discount_price ? `
+              <span class="original-price">₹${Number(item.price || 0).toLocaleString()}</span>
+              <span class="discount">${discountPercent}% off</span>
+            ` : ''}
+          </div>
+          <div class="quantity-controls">
+            <button class="qty-btn" onclick="updateQuantity(${item.cart_id || item.id}, ${Math.max(1, (item.quantity || 1) - 1)})">-</button>
+            <span class="qty-value">${item.quantity || 1}</span>
+            <button class="qty-btn" onclick="updateQuantity(${item.cart_id || item.id}, ${(item.quantity || 1) + 1})">+</button>
+            <div class="remove-btn" onclick="removeItem(${item.cart_id || item.id})">
+              <i class="fas fa-trash"></i> Remove
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+  });
+
+  cartList.innerHTML = html;
+
+  const itemCount = items.reduce((sum, item) => sum + Number(item.quantity || 1), 0);
+
+  document.getElementById('itemCount').textContent = itemCount;
+  document.getElementById('totalItems').textContent = itemCount;
+
+  // pricing safety: ensure fields exist and are numbers
+  const totalMrp = pricing && typeof pricing.totalMrp === 'number' ? pricing.totalMrp : 0;
+  const totalDiscount = pricing && typeof pricing.totalDiscount === 'number' ? pricing.totalDiscount : 0;
+  const finalAmount = pricing && typeof pricing.finalAmount === 'number' ? pricing.finalAmount : 0;
+
+  document.getElementById('originalTotal').textContent = '₹' + Number(totalMrp).toLocaleString();
+  document.getElementById('totalDiscount').textContent = '- ₹' + Number(totalDiscount).toLocaleString();
+  document.getElementById('grandTotal').textContent = '₹' + Number(finalAmount).toLocaleString();
+
+  document.getElementById('checkoutBtn').disabled = false;
+}
 
         async function updateQuantity(cartId, quantity) {
             if (quantity < 1) {
@@ -499,6 +540,7 @@
 </body>
 
 </html>
+
 
 
 
