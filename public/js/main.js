@@ -292,4 +292,3 @@ function showToast(message) {
     toast.classList.add('active');
     setTimeout(() => toast.classList.remove('active'), 3000);
 }
-
