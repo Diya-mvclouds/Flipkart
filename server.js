@@ -13,7 +13,13 @@ const orderRoutes = require('./routes/orders');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-app.use(cors());
+app.use(cors({
+    origin: [
+        'https://your-github-pages-url.github.io',
+        'http://localhost:3000'
+    ],
+    credentials: true
+}));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -48,5 +54,6 @@ async function startServer() {
         console.error('Failed to start server:', error);
     }
 }
+
 
 startServer();
