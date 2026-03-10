@@ -69,7 +69,7 @@ function logout() {
     localStorage.removeItem('user');
     showToast('Logged out successfully!');
     checkAuth();
-    loadCartCount();
+    updateCartCount();
 }
 
 document.addEventListener('click', function(e) {
@@ -339,6 +339,7 @@ function showToast(message) {
     toast.classList.add('active');
     setTimeout(() => toast.classList.remove('active'), 3000);
 }
+
 
 
 
