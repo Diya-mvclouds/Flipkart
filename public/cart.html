@@ -335,176 +335,196 @@
     </div>
 
        <script>
-        const API_URL = window.location.hostname.includes('localhost')
-            ? 'http://localhost:3000/api'
-            : 'https://flipkart1-0xel.onrender.com/api';
-        let cartData = [];
+const API_URL = window.location.hostname.includes('localhost')
+    ? 'http://localhost:3000/api'
+    : 'https://flipkart1-0xel.onrender.com/api';
 
-        document.addEventListener('DOMContentLoaded', function() {
-            const token = localStorage.getItem('token');
-            if (!token) {
-                window.location.href = 'login.html';
-                return;
+let cartData = [];
+
+document.addEventListener('DOMContentLoaded', () => {
+    const token = localStorage.getItem('token');
+
+    if (!token) {
+        window.location.href = "login.html";
+        return;
+    }
+
+    loadCart();
+});
+
+async function loadCart() {
+    const token = localStorage.getItem('token');
+    const cartList = document.getElementById('cartItemsList');
+
+    try {
+        const response = await fetch(`${API_URL}/cart`, {
+            headers: {
+                Authorization: `Bearer ${token}`
             }
-            loadCart();
         });
 
-        async function loadCart() {
-            const token = localStorage.getItem('token');
-            const cartList = document.getElementById('cartItemsList');
-            
-            try {
-                const response = await fetch(`${API_URL}/cart`, {
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    }
-                });
-                
-                const data = await response.json();
-                
-                if (data.success) {
-                    cartData = data.cartItems;
-                    renderCart(data.cartItems, data.pricing);
-                } else {
-                    cartList.innerHTML = '<p style="padding: 20px; text-align: center;">Failed to load cart. Please login again.</p>';
-                }
-            } catch (error) {
-                console.error('Error loading cart:', error);
-                cartList.innerHTML = '<p style="padding: 20px; text-align: center; color: red;">Network Error. Check console.</p>';
-            }
-        }
-           
+        const data = await response.json();
 
-        function renderCart(items, pricing) {
-            const cartList = document.getElementById('cartItemsList');
-            
-            if (!items || items.length === 0) {
-                cartList.innerHTML = `
-                    <div class="empty-cart">
-                        <img src="https://rukminim1.flixcart.com/www/800/800/promos/16/05/2019/d438a32e-765a-4d8b-b4a6-520b560971e8.png?q=90" alt="Empty Cart">
-                        <h3>Your cart is empty!</h3>
-                        <p>Add items to it now.</p>
-                        <button class="shop-btn" onclick="window.location.href='index.html'">Shop Now</button>
+        if (data.success) {
+            cartData = data.cartItems || [];
+
+            renderCart(
+                cartData,
+                data.pricing || {
+                    totalMrp: 0,
+                    totalDiscount: 0,
+                    finalAmount: 0
+                }
+            );
+        } else {
+            cartList.innerHTML =
+                '<p style="padding:20px;text-align:center;">Failed to load cart.</p>';
+        }
+
+    } catch (error) {
+        console.error("Cart Load Error:", error);
+        cartList.innerHTML =
+            '<p style="padding:20px;text-align:center;color:red;">Network Error</p>';
+    }
+}
+
+function renderCart(items, pricing) {
+    const cartList = document.getElementById('cartItemsList');
+
+    if (!items || items.length === 0) {
+        cartList.innerHTML = `
+        <div class="empty-cart">
+            <h3>Your cart is empty</h3>
+            <button class="shop-btn" onclick="window.location.href='index.html'">
+                Shop Now
+            </button>
+        </div>
+        `;
+
+        document.getElementById('checkoutBtn').disabled = true;
+        return;
+    }
+
+    let html = "";
+
+    items.forEach(item => {
+        const price = item.discount_price || item.price;
+
+        html += `
+        <div class="cart-item">
+            <img src="${item.image_url}" class="item-image"/>
+
+            <div class="item-details">
+                <h3>${item.name}</h3>
+
+                <div class="item-price">
+                    ₹${price}
+                </div>
+
+                <div class="quantity-controls">
+                    <button class="qty-btn"
+                        onclick="updateQuantity(${item.cart_id}, ${item.quantity-1})">-</button>
+
+                    <span class="qty-value">${item.quantity}</span>
+
+                    <button class="qty-btn"
+                        onclick="updateQuantity(${item.cart_id}, ${item.quantity+1})">+</button>
+
+                    <div class="remove-btn"
+                        onclick="removeItem(${item.cart_id})">
+                        Remove
                     </div>
-                `;
-                document.getElementById('checkoutBtn').disabled = true;
-                document.getElementById('grandTotal').textContent = '₹0';
-                return;
-            }
+                </div>
+            </div>
+        </div>
+        `;
+    });
 
-            let html = '';
-            
-            items.forEach(item => {
-                const price = item.discount_price || item.price;
-                const discountPercent = item.discount_price 
-                    ? Math.round(((item.price - item.discount_price) / item.price) * 100)
-                    : 0;
-                
-                html += `
-                    <div class="cart-item" data-id="${item.cart_id}">
-                        <img src="${item.image_url}" alt="${item.name}" class="item-image"
-                             onerror="this.src='https://via.placeholder.com/120?text=No+Image'">
-                        <div class="item-details">
-                            <h3 class="item-name">${item.name}</h3>
-                            <p class="item-brand">${item.brand || 'Brand'}</p>
-                            <div class="item-price">
-                                <span class="current-price">₹${price.toLocaleString()}</span>
-                                ${item.discount_price ? `
-                                    <span class="original-price">₹${item.price.toLocaleString()}</span>
-                                    <span class="discount">${discountPercent}% off</span>
-                                ` : ''}
-                            </div>
-                            <div class="quantity-controls">
-                                <button class="qty-btn" onclick="updateQuantity(${item.cart_id}, ${item.quantity - 1})">-</button>
-                                <span class="qty-value">${item.quantity}</span>
-                                <button class="qty-btn" onclick="updateQuantity(${item.cart_id}, ${item.quantity + 1})">+</button>
-                                <div class="remove-btn" onclick="removeItem(${item.cart_id})">
-                                    <i class="fas fa-trash"></i> Remove
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            });
-            
-            cartList.innerHTML = html;
-            
-            const itemCount = items.reduce((sum, item) => sum + item.quantity, 0);
-            
-            document.getElementById('itemCount').textContent = itemCount;
-            document.getElementById('totalItems').textContent = itemCount;
-            document.getElementById('originalTotal').textContent = '₹' + pricing.totalMrp.toLocaleString();
-            document.getElementById('totalDiscount').textContent = '- ₹' + pricing.totalDiscount.toLocaleString();
-            document.getElementById('grandTotal').textContent = '₹' + pricing.finalAmount.toLocaleString();
-            
-            document.getElementById('checkoutBtn').disabled = false;
-        }
+    cartList.innerHTML = html;
 
-        async function updateQuantity(cartId, quantity) {
-            if (quantity < 1) {
-                removeItem(cartId);
-                return;
-            }
-            
-            const token = localStorage.getItem('token');
-            
-            try {
-                const response = await fetch(`${API_URL}/cart/update`, {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
-                    },
-                    body: JSON.stringify({ cartId, quantity })
-                });
-                
-                const data = await response.json();
-                
-                if (data.success) {
-                    cartData = data.cartItems;
-                
-                    renderCart(
-                        data.cartItems || [],
-                        data.pricing || {
-                            totalMrp: 0,
-                            totalDiscount: 0,
-                            finalAmount: 0
-                        }
-                    );
-                
-                } else {
-                    cartList.innerHTML =
-                        '<p style="padding:20px;text-align:center;">Failed to load cart. Please login again.</p>';
+    const itemCount = items.reduce((sum, i) => sum + i.quantity, 0);
+
+    document.getElementById("itemCount").textContent = itemCount;
+    document.getElementById("totalItems").textContent = itemCount;
+
+    document.getElementById("originalTotal").textContent =
+        "₹" + (pricing.totalMrp || 0);
+
+    document.getElementById("totalDiscount").textContent =
+        "- ₹" + (pricing.totalDiscount || 0);
+
+    document.getElementById("grandTotal").textContent =
+        "₹" + (pricing.finalAmount || 0);
+
+    document.getElementById("checkoutBtn").disabled = false;
+}
+
+async function updateQuantity(cartId, quantity) {
+    if (quantity < 1) {
+        removeItem(cartId);
+        return;
+    }
+
+    const token = localStorage.getItem("token");
+
+    try {
+        const response = await fetch(`${API_URL}/cart/update`, {
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`
+            },
+            body: JSON.stringify({ cartId, quantity })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            renderCart(
+                data.cartItems || [],
+                data.pricing || {
+                    totalMrp: 0,
+                    totalDiscount: 0,
+                    finalAmount: 0
                 }
+            );
+        }
 
-        async function removeItem(cartId) {
-            const token = localStorage.getItem('token');
-            
-            if (!confirm('Remove this item from cart?')) return;
+    } catch (error) {
+        console.error("Quantity update error:", error);
+    }
+}
 
-            try {
-                const response = await fetch(`${API_URL}/cart/remove/${cartId}`, {
-                    method: 'DELETE',
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    }
-                });
-                
-                const data = await response.json();
-                
-                if (data.success) {
-                    loadCart();
-                }
-            } catch (error) {
-                console.error('Error removing item:', error);
+async function removeItem(cartId) {
+    const token = localStorage.getItem("token");
+
+    if (!confirm("Remove this item?")) return;
+
+    try {
+        const response = await fetch(`${API_URL}/cart/remove/${cartId}`, {
+            method: "DELETE",
+            headers: {
+                Authorization: `Bearer ${token}`
             }
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            loadCart();
         }
 
-        function proceedToCheckout() {
-            window.location.href = 'checkout.html';
-        }
-    </script>
+    } catch (error) {
+        console.error("Remove error:", error);
+    }
+}
+
+function proceedToCheckout() {
+    window.location.href = "checkout.html";
+}
+</script>
 </body>
 
 </html>
+
 
