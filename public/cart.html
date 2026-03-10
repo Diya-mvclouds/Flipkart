@@ -341,16 +341,15 @@
 
       let cartData = [];
 
-        document.addEventListener('DOMContentLoaded', function() {
-            const token = localStorage.getItem('token');
-            if (!token) {
-                window.location.href = 'login.html';
-                return;
-            }
-            loadCart();
-        });
+        // document.addEventListener('DOMContentLoaded', function() {
+        //     const token = localStorage.getItem('token');
+        //     if (!token) {
+        //         window.location.href = 'login.html';
+        //         return;
+        //     }
+        //     loadCart();
+        // });
 
-        // Robust loadCart + renderCart with fallback pricing computation
 
 async function loadCart() {
   const token = localStorage.getItem('token');
@@ -361,7 +360,6 @@ async function loadCart() {
       headers: { 'Authorization': `Bearer ${token}` }
     });
 
-    // if not JSON or non-2xx, still try to show proper message
     if (!response.ok) {
       console.error('Cart API responded with status', response.status);
       const text = await response.text();
@@ -371,11 +369,9 @@ async function loadCart() {
     }
 
     const data = await response.json();
-    console.log('Cart API response:', data); // Inspect here
-
+    console.log('Cart API response:', data); 
     if (data && data.success) {
       cartData = data.cartItems || [];
-      // If pricing missing, compute it client-side as fallback
       const pricing = data.pricing || computePricingFallback(cartData);
       renderCart(cartData, pricing);
     } else {
@@ -388,8 +384,6 @@ async function loadCart() {
 }
 
 function computePricingFallback(items) {
-  // compute total MRP, total discount and final amount
-  // expects each item to have: price, discount_price (optional), quantity
   const totals = items.reduce((acc, item) => {
     const qty = Number(item.quantity || 1);
     const mrpEach = Number(item.price || 0);
@@ -408,8 +402,6 @@ function computePricingFallback(items) {
   return totals;
 }
 
-// Replace your renderCart function and add delegation to handle +/- and Remove buttons.
-// This avoids inline onclick handlers and works after re-renders.
 
 function renderCart(items, pricing) {
   const cartList = document.getElementById('cartItemsList');
@@ -576,6 +568,7 @@ document.addEventListener('DOMContentLoaded', () => {
 </body>
 
 </html>
+
 
 
 
