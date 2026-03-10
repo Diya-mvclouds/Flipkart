@@ -131,6 +131,24 @@ async function loadDeals() {
         grid.innerHTML = `<p style="text-align:center;color:#666;">Failed to load deals.</p>`;
     }
 }
+async function loadCartCount() {
+    const token = localStorage.getItem("token");
+    if (!token) return;
+    try {
+        const res = await fetch(`${API_URL}/cart`, {
+            headers: {
+                "Authorization": `Bearer ${token}`
+            }
+        });
+        const data = await res.json();
+        if (data.success) {
+            const count = data.cartItems.reduce((sum, item) => sum + item.quantity, 0);
+            document.getElementById("cartCount").innerText = count;
+        }
+    } catch (err) {
+        console.error("Cart count error:", err);
+    }
+}
 
 function renderProducts(products, container) {
     products.forEach(product => {
