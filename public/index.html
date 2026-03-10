@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flipkart - Online Shopping</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="top-banner">
+        <div class="banner-content">
+            <span>🎉 Grand Sale! Up to 80% OFF on Electronics, Fashion & More!</span>
+        </div>
+    </div>
+
+    <header class="header">
+        <div class="header-container">
+            <div class="logo" onclick="window.location.href='index.html'">
+                <img src="https://static-assets-web.flixcart.com/batman-returns/batman-returns/p/images/fkheaderlogo_exploreplus-44005d.svg" alt="Flipkart">
+                <span class="explore-text">Explore <span class="plus-text">Plus</span></span>
+            </div>
+
+            <div class="search-container">
+                <input type="text" id="searchInput" placeholder="Search for Products, Brands and More" autocomplete="off">
+                <button class="search-btn">
+                    <i class="fas fa-search"></i>
+                </button>
+                <div class="search-suggestions" id="searchSuggestions"></div>
+            </div>
+
+            <div class="login-section">
+                <button class="login-btn" id="loginBtn" onclick="handleAuthClick()">
+                    <i class="fas fa-user"></i>
+                    <span id="authText">Login</span>
+                </button>
+                <div class="dropdown-menu" id="userDropdown">
+                    <div class="dropdown-header">
+                        <span>New Customer?</span>
+                        <a href="signup.html">Sign Up</a>
+                    </div>
+                    <div class="dropdown-items" id="userMenuItems"></div>
+                </div>
+            </div>
+
+            <div class="cart-section" onclick="window.location.href='cart.html'">
+                <i class="fas fa-shopping-cart"></i>
+                <span>Cart</span>
+                <span class="cart-count" id="cartCount">0</span>
+            </div>
+        </div>
+    </header>
+
+    <nav class="categories-nav">
+        <div class="categories-container">
+            <div class="category-item" data-category="1">
+                <img src="https://rukminim1.flixcart.com/flap/80/80/image/69c6589653afdb9a.png?q=100" alt="Electronics">
+                <span>Electronics</span>
+            </div>
+            <div class="category-item" data-category="2">
+                <img src="https://rukminim1.flixcart.com/flap/80/80/image/0139228b2f7eb413.jpg?q=100" alt="TVs">
+                <span>TVs & Appliances</span>
+            </div>
+            <div class="category-item" data-category="3">
+                <img src="https://rukminim2.flixcart.com/image/612/612/xif0q/jacket/i/g/v/l-1-no-2250104616-1-rock-it-original-imahk75knfc9sfr5.jpeg?q=70" alt="Men">
+                <span>Men</span>
+            </div>
+            <div class="category-item" data-category="4">
+                <img src="https://rukminim2.flixcart.com/image/612/612/xif0q/salwar-kurta-dupatta/z/o/i/3xl-two-print-kundi-original-imahjmebdqyzhzeg.jpeg?q=70" alt="Women">
+                <span>Women</span>
+            </div>
+            <div class="category-item" data-category="5">
+                <img src="https://rukminim2.flixcart.com/image/612/612/xif0q/hammock-swing/u/n/z/200-36-fk-jh-wb-vr-01-furniture-kart-original-imahd9ephpudutqc.jpeg?q=70" alt="Home">
+                <span>Home & Furniture</span>
+            </div>
+            <div class="category-item" data-category="6">
+                <img src="https://rukminim2.flixcart.com/image/612/612/xif0q/kit/u/u/q/kiddo-badminton-racket-kit-for-kids-with-3-corks-and-cover-original-imahggabzk9dhgrj.jpeg?q=70" alt="Sports">
+                <span>Sports & Fitness</span>
+            </div>
+            <div class="category-item" data-category="7">
+                <img src="https://rukminim2.flixcart.com/image/612/612/xif0q/regionalbooks/6/x/w/psychology-of-money-rich-dad-english-combo-original-imahfzf73vfc7wfu.jpeg?q=70" alt="Books">
+                <span>Books</span>
+            </div>
+        </div>
+    </nav>
+
+    <main class="main-content">
+
+        <section class="hero-carousel">
+            <div class="carousel-container">
+                <div class="carousel-slides" id="carouselSlides">
+                    <div class="slide active">
+                        <img src="https://rukminim2.flixcart.com/fk-p-flap/3240/1580/image/8592140bf5c24787.png?q=60" alt="Sale Banner">
+                    </div>
+                    <div class="slide">
+                        <img src="https://rukminim2.flixcart.com/fk-p-flap/3240/1580/image/8276b5dbb002dd7e.png?q=60" alt="Electronics Sale">
+                    </div>
+                    <div class="slide">
+                        <img src="https://rukminim2.flixcart.com/fk-p-flap/3240/1580/image/3ab62df7d758462e.png?q=60" alt="Fashion Sale">
+                    </div>
+                </div>
+                <button class="carousel-btn prev" onclick="changeSlide(-1)"><i class="fas fa-chevron-left"></i></button>
+                <button class="carousel-btn next" onclick="changeSlide(1)"><i class="fas fa-chevron-right"></i></button>
+                <div class="carousel-dots" id="carouselDots"></div>
+            </div>
+        </section>
+
+        <section class="deals-section">
+            <div class="section-header">
+                <h2>Best Deals</h2>
+                <button class="view-all-btn">View All</button>
+            </div>
+            <div class="products-grid" id="dealsGrid">
+                <div class="loading-placeholder">Loading deals...</div>
+            </div>
+        </section>
+
+        <section class="all-products-section">
+            <div class="section-header">
+                <h2>All Products</h2>
+                <div class="filter-options">
+                    <select id="sortSelect" onchange="loadProducts()">
+                        <option value="newest">Newest First</option>
+                        <option value="price-low">Price: Low to High</option>
+                        <option value="price-high">Price: High to Low</option>
+                        <option value="rating">Rating</option>
+                    </select>
+                </div>
+            </div>
+            <div class="products-grid" id="allProductsGrid">
+                <!-- Loading placeholder -->
+                <div class="loading-placeholder">Loading products...</div>
+            </div>
+            <div class="load-more-container">
+                <button class="load-more-btn" id="loadMoreBtn" onclick="loadMoreProducts()">Load More Products</button>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <div class="footer-container">
+            <div class="footer-section">
+                <h4>ABOUT</h4>
+                <ul>
+                    <li><a href="contact.html">Contact Us</a></li>
+                    <li><a href="about.html">About Us</a></li>
+                    <li><a href="careers.html">Careers</a></li>
+                    <li><a href="#">Flipkart Stories</a></li>
+                    <li><a href="press.html">Press</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h4>Check</h4>
+                <ul>
+                    <li><a href="help.html">Help</a></li>
+                    <li><a href="#">Shipping</a></li>
+                    <li><a href="#">Cancellation & Returns</a></li>
+                    <li><a href="#">FAQ</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h4>POLICY</h4>
+                <ul>
+                    <li><a href="#">Return Policy</a></li>
+                    <li><a href="#">Terms Of Use</a></li>
+                    <li><a href="#">Security</a></li>
+                    <li><a href="#">Privacy</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h4>SOCIAL</h4>
+                <ul>
+                    <li><i class="fa-brands fa-facebook"></i><a href="https://www.facebook.com/flipkart">Facebook</a></li>
+                    <li><i class="fa-brands fa-twitter"></i><a href="https://x.com/flipkart">Twitter</a></li>
+                    <li><i class="fa-brands fa-youtube"></i><a href="https://www.youtube.com/flipkart">YouTube</a></li>
+                    <li><i class="fa-brands fa-instagram"></i><a href="https://www.instagram.com/flipkart">Instagram</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2024 Flipkart. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <div class="toast" id="toast">
+        <div class="toast-content">
+            <i class="fas fa-check-circle"></i>
+            <span id="toastMessage">Product added to cart!</span>
+        </div>
+    </div>
+
+    <script src="js/main.js"></script>
+</body>
+</html>
+
+
+
