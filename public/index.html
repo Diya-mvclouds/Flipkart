@@ -40,8 +40,7 @@
                         <span>New Customer?</span>
                         <a href="signup.html">Sign Up</a>
                     </div>
-                    <div class="dropdown-items" id="userMenuItems">
-                    </div>
+                    <div class="dropdown-items" id="userMenuItems"></div>
                 </div>
             </div>
 
@@ -87,6 +86,7 @@
     </nav>
 
     <main class="main-content">
+
         <section class="hero-carousel">
             <div class="carousel-container">
                 <div class="carousel-slides" id="carouselSlides">
@@ -100,12 +100,8 @@
                         <img src="https://rukminim2.flixcart.com/fk-p-flap/3240/1580/image/3ab62df7d758462e.png?q=60" alt="Fashion Sale">
                     </div>
                 </div>
-                <button class="carousel-btn prev" onclick="changeSlide(-1)">
-                    <i class="fas fa-chevron-left"></i>
-                </button>
-                <button class="carousel-btn next" onclick="changeSlide(1)">
-                    <i class="fas fa-chevron-right"></i>
-                </button>
+                <button class="carousel-btn prev" onclick="changeSlide(-1)"><i class="fas fa-chevron-left"></i></button>
+                <button class="carousel-btn next" onclick="changeSlide(1)"><i class="fas fa-chevron-right"></i></button>
                 <div class="carousel-dots" id="carouselDots"></div>
             </div>
         </section>
@@ -116,6 +112,7 @@
                 <button class="view-all-btn">View All</button>
             </div>
             <div class="products-grid" id="dealsGrid">
+                <div class="loading-placeholder">Loading deals...</div>
             </div>
         </section>
 
@@ -132,11 +129,11 @@
                 </div>
             </div>
             <div class="products-grid" id="allProductsGrid">
+                <!-- Loading placeholder -->
+                <div class="loading-placeholder">Loading products...</div>
             </div>
             <div class="load-more-container">
-                <button class="load-more-btn" id="loadMoreBtn" onclick="loadMoreProducts()">
-                    Load More Products
-                </button>
+                <button class="load-more-btn" id="loadMoreBtn" onclick="loadMoreProducts()">Load More Products</button>
             </div>
         </section>
     </main>
@@ -149,7 +146,7 @@
                     <li><a href="contact.html">Contact Us</a></li>
                     <li><a href="about.html">About Us</a></li>
                     <li><a href="careers.html">Careers</a></li>
-                    <li><a href="stories.html">Flipkart Stories</a></li>
+                    <li><a href="#">Flipkart Stories</a></li>
                     <li><a href="press.html">Press</a></li>
                 </ul>
             </div>
@@ -174,10 +171,10 @@
             <div class="footer-section">
                 <h4>SOCIAL</h4>
                 <ul>
-                    <li><i class="fa-brands fa-facebook"></i><a style="padding: 5px;" href="https://www.facebook.com/flipkart">Facebook</a></li>
-                    <li><i class="fa-brands fa-twitter"></i><a style="padding: 5px;" href="https://x.com/flipkart">Twitter</a></li>
-                    <li><i class="fa-brands fa-youtube"></i><a style="padding: 5px;" href="https://www.youtube.com/flipkart">YouTube</a></li>
-                    <li><i class="fa-brands fa-instagram"></i><a style="padding: 5px;" href="https://www.instagram.com/flipkart">Instagram</a></li>
+                    <li><i class="fa-brands fa-facebook"></i><a href="https://www.facebook.com/flipkart">Facebook</a></li>
+                    <li><i class="fa-brands fa-twitter"></i><a href="https://x.com/flipkart">Twitter</a></li>
+                    <li><i class="fa-brands fa-youtube"></i><a href="https://www.youtube.com/flipkart">YouTube</a></li>
+                    <li><i class="fa-brands fa-instagram"></i><a href="https://www.instagram.com/flipkart">Instagram</a></li>
                 </ul>
             </div>
         </div>
