@@ -209,28 +209,25 @@ async function addToCart(productId) {
     }
 }
 
-async function loadCartCount() {
-    const token = localStorage.getItem('token');
-    const cartCountEl = document.getElementById('cartCount');
-    if (!token) return cartCountEl.textContent = '0';
+async function updateCartCount() {
+    const token = localStorage.getItem("token");
+    if (!token) return;
 
     try {
-        const response = await fetch(`${API_URL}/cart`, {
-            headers: { 'Authorization': `Bearer ${token}` }
+        const res = await fetch(`${API_URL}/cart`, {
+            headers: {
+                "Authorization": `Bearer ${token}`
+            }
         });
-
-        if (!response.ok) throw new Error(`HTTP error ${response.status}`);
-        const data = await response.json();
-
+        const data = await res.json();
         if (data.success) {
             const count = data.cartItems.reduce((sum, item) => sum + item.quantity, 0);
-            cartCountEl.textContent = count;
+            document.getElementById("cartCount").innerText = count;
         }
-    } catch (error) {
-        console.error('Error loading cart count:', error);
+    } catch (err) {
+        console.error(err);
     }
 }
-
 let currentSlide = 0;
 let slideInterval;
 
@@ -292,6 +289,7 @@ function showToast(message) {
     toast.classList.add('active');
     setTimeout(() => toast.classList.remove('active'), 3000);
 }
+
 
 
 
