@@ -209,58 +209,57 @@
     </div>
 
     <script>
-        const API_URL = 'http://localhost:3000/api';
+    const API_URL = window.location.hostname.includes('localhost')
+        ? 'http://localhost:3000/api'
+        : 'https://flipkart1-0xel.onrender.com/api';
+
+    document.getElementById('signupForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
         
-        document.getElementById('signupForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
+        const name = document.getElementById('name').value;
+        const email = document.getElementById('email').value;
+        const phone = document.getElementById('phone').value;
+        const password = document.getElementById('password').value;
+        const errorMsg = document.getElementById('errorMsg');
+        const successMsg = document.getElementById('successMsg');
+        const submitBtn = document.getElementById('submitBtn');
+        
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Creating Account...';
+        errorMsg.classList.remove('active');
+        successMsg.classList.remove('active');
+        
+        try {
+            const response = await fetch(`${API_URL}/auth/register`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name, email, phone, password })
+            });
             
-            const name = document.getElementById('name').value;
-            const email = document.getElementById('email').value;
-            const phone = document.getElementById('phone').value;
-            const password = document.getElementById('password').value;
-            const errorMsg = document.getElementById('errorMsg');
-            const successMsg = document.getElementById('successMsg');
-            const submitBtn = document.getElementById('submitBtn');
+            const data = await response.json();
             
-            submitBtn.disabled = true;
-            submitBtn.textContent = 'Creating Account...';
-            errorMsg.classList.remove('active');
-            successMsg.classList.remove('active');
-            
-            try {
-                const response = await fetch(`${API_URL}/auth/register`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ name, email, phone, password })
-                });
+            if (data.success) {
+                successMsg.textContent = 'Account created successfully! Redirecting...';
+                successMsg.classList.add('active');
                 
-                const data = await response.json();
+                localStorage.setItem('token', data.token);
+                localStorage.setItem('user', JSON.stringify(data.user));
                 
-                if (data.success) {
-                    successMsg.textContent = 'Account created successfully! Redirecting...';
-                    successMsg.classList.add('active');
-                    
-                    localStorage.setItem('token', data.token);
-                    localStorage.setItem('user', JSON.stringify(data.user));
-                    
-                    setTimeout(() => {
-                        window.location.href = 'index.html';
-                    }, 1500);
-                } else {
-                    errorMsg.textContent = data.message || 'Registration failed!';
-                    errorMsg.classList.add('active');
-                    submitBtn.disabled = false;
-                    submitBtn.textContent = 'Create Account';
-                }
-            } catch (error) {
-                errorMsg.textContent = 'Network error. Please try again.';
+                setTimeout(() => { window.location.href = 'index.html'; }, 1500);
+            } else {
+                errorMsg.textContent = data.message || 'Registration failed!';
                 errorMsg.classList.add('active');
                 submitBtn.disabled = false;
                 submitBtn.textContent = 'Create Account';
             }
-        });
-    </script>
+        } catch (error) {
+            errorMsg.textContent = 'Network error. Please try again.';
+            errorMsg.classList.add('active');
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Create Account';
+        }
+    });
+</script>
 </body>
+
 </html>
