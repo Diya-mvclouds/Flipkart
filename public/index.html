@@ -109,6 +109,7 @@
         <section class="deals-section">
             <div class="section-header">
                 <h2>Best Deals</h2>
+                <button class="add-cart-btn" onclick="addToCart(${product.id})">Add to Cart</button>
                 <button class="view-all-btn">View All</button>
             </div>
             <div class="products-grid" id="dealsGrid">
@@ -130,6 +131,7 @@
             </div>
             <div class="products-grid" id="allProductsGrid">
                 <!-- Loading placeholder -->
+                <button class="add-cart-btn" onclick="addToCart(${product.id})">Add to Cart</button>
                 <div class="loading-placeholder">Loading products...</div>
             </div>
             <div class="load-more-container">
@@ -193,4 +195,5 @@
     <script src="js/main.js"></script>
 </body>
 </html>
+
 
