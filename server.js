@@ -15,9 +15,14 @@ const PORT = process.env.PORT || 3000;
 
 app.use(cors({
     origin: [
-        'https://your-github-pages-url.github.io',
-        'http://localhost:3000'
+        'http://localhost:3000',
+        'http://localhost:5500',
+        'https://flipkart1.com',
+        'https://www.flipkart1.com',
+        'https://your-username.github.io'
     ],
+    methods: ['GET','POST','PUT','DELETE'],
+    allowedHeaders: ['Content-Type','Authorization'],
     credentials: true
 }));
 app.use(express.json());
@@ -57,3 +62,4 @@ async function startServer() {
 
 
 startServer();
+
