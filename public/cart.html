@@ -341,14 +341,29 @@
 
       let cartData = [];
 
-        // document.addEventListener('DOMContentLoaded', function() {
-        //     const token = localStorage.getItem('token');
-        //     if (!token) {
-        //         window.location.href = 'login.html';
-        //         return;
-        //     }
-        //     loadCart();
-        // });
+        document.addEventListener('DOMContentLoaded', () => {
+  const cartList = document.getElementById('cartItemsList');
+  if (!cartList) return;
+
+  cartList.addEventListener('click', function (e) {
+    const actionEl = e.target.closest('[data-action]');
+    if (!actionEl) return;
+
+    const action = actionEl.getAttribute('data-action');
+    const id = actionEl.getAttribute('data-id');
+    let qty = Number(actionEl.getAttribute('data-qty') || 0);
+
+    if (action === 'increase') {
+      const newQty = qty + 1;
+      updateQuantity(id, newQty);
+    } else if (action === 'decrease') {
+      const newQty = Math.max(1, qty - 1);
+      updateQuantity(id, newQty);
+    } else if (action === 'remove') {
+      if (!confirm('Remove this item from cart?')) return;
+      removeItem(id);
+    }
+  });
 
 
 async function loadCart() {
@@ -465,8 +480,6 @@ function renderCart(items, pricing) {
   html += '</div>';
 
   cartList.innerHTML = html;
-
-  // update summary values
   const itemCount = items.reduce((sum, item) => sum + Number(item.quantity || 1), 0);
   document.getElementById('itemCount').textContent = itemCount;
   document.getElementById('totalItems').textContent = itemCount;
@@ -481,33 +494,6 @@ function renderCart(items, pricing) {
 
   document.getElementById('checkoutBtn').disabled = false;
 }
-document.addEventListener('DOMContentLoaded', () => {
-  const cartList = document.getElementById('cartItemsList');
-  if (!cartList) return;
-
-  cartList.addEventListener('click', function (e) {
-    // Find the element with data-action attribute
-    const actionEl = e.target.closest('[data-action]');
-    if (!actionEl) return;
-
-    const action = actionEl.getAttribute('data-action');
-    const id = actionEl.getAttribute('data-id');
-    // current quantity stored on the button data-qty (we will compute new qty)
-    let qty = Number(actionEl.getAttribute('data-qty') || 0);
-
-    if (action === 'increase') {
-      const newQty = qty + 1;
-      // call your existing updateQuantity function
-      updateQuantity(id, newQty);
-    } else if (action === 'decrease') {
-      const newQty = Math.max(1, qty - 1);
-      updateQuantity(id, newQty);
-    } else if (action === 'remove') {
-      if (!confirm('Remove this item from cart?')) return;
-      removeItem(id);
-    }
-  });
-});
 
         async function updateQuantity(cartId, quantity) {
             if (quantity < 1) {
@@ -568,6 +554,7 @@ document.addEventListener('DOMContentLoaded', () => {
 </body>
 
 </html>
+
 
 
 
